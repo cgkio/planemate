@@ -291,7 +291,10 @@ function pollSensor() {
 // function to update the main broadcast message in Firebase
 async function updateMainMsg(message) {
   try {
-    await db.ref("message/main").set(message);
+    var messageUpdate = {};
+    messageUpdate.main = message;
+    messageUpdate.updated = moment().format();
+    await db.ref("message").set(messageUpdate);
     log(`Main message updated in Firebase: ${message}`);
   } catch (error) {
     console.error(`Error updating main message in Firebase:`, error);
