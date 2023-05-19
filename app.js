@@ -212,7 +212,7 @@ function pollSensor() {
     peopleCount = 0; // reset the people counter
     timestampBuffer = []; //reset the buffer
     db.ref(`doors/Door${doorNumber}`).set(false); // Update the door open/close status in Firebase
-    updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) has opened.`); // Update main message in Firebase
+    updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
     rpio.write(RED_LIGHT, 0);
     rpio.write(GREEN_LIGHT, 1);
     doorOpenTime = Date.now();
@@ -239,7 +239,7 @@ function pollSensor() {
 
     clearInterval(intervalId); // Stop the interval
     db.ref(`doors/Door${doorNumber}`).set(true); // Update the door status in Firebase
-    updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) has closed.`); // Update main message in Firebase
+    updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) closed.`); // Update main message in Firebase
     rpio.write(GREEN_LIGHT, 0);
     rpio.write(RED_LIGHT, 1);
     
