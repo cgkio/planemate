@@ -3,25 +3,24 @@
 Headless Raspberry Pi running Node.js that autoboots.
 
 ### Features:
-- AirTable data logging
-- Time open calculations
-- Computed turnaround time
+- AirTable database logging
+- Calculates boarding duration
+- Calculates turnaround time
 - Ability to remotely assign Pis to specific dock and door #
-- Red Light / Green Light visual dashboard
-- Average turn around time (AirTable dashboard)
+- Real-time red light / green light visual dashboard
 - Runs script on boot with sudo permissions
 - Counts passengers when the loading starts
-- dashboard to show "real time" test data (special section)
+- Dashboard to show "real time" test data
+- 3 second delay on people counting when the door opens
 
 ### Next Up
-- Add a 3 second delay on people counting when the door opens
 - Add a 3 second "delay" on people counting when the door closes (seperate variable)
+- Determines/estimtes if the PlaneMate arrived after the flight arrived
 
 ### Features Pending
 
 - Document permission settings commands for setting up a Raspberry Pi
 - Report error is door open times exceed XXX
-- Calculates the loading times (timestamp when loading starts)
 - Remote reboot
 
 ### Instructions:
