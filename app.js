@@ -79,6 +79,7 @@ echo.on("alert", (level, tick) => {
       if (!personDetected && Math.abs(distance - baseline) > 30) {
         log("Person Detected | " + distance + " cm"); // person detected if the distance is more than 30 cm from the baseline
         flashYellowLight();
+        db.ref('lastTransaction/activePassengerCount').set(peopleCount); // update the active passenger count in Firebase
         personDetected = true;
         peopleCount++; // Increase the counter when a person is detected
         log("Total People Detected: " + peopleCount);
@@ -210,6 +211,7 @@ function pollSensor() {
   if (isOpen && isOpen !== oldIsOpen) {
     console.log("PlaneMate Door OPEN"); // door has been detected to be open
     peopleCount = 0; // reset the people counter
+    db.ref('lastTransaction/activePassengerCount').set(0); // reset the active passenger count in Firebase
     timestampBuffer = []; //reset the buffer
     db.ref(`doors/Door${doorNumber}`).set(false); // Update the door open/close status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
