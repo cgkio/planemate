@@ -258,11 +258,10 @@ function pollSensor() {
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
-    // const lastPassengerTimetamp = new Date(secondLastPassengerTime).toISOString();
-    const lastPassengerTimetamp = new Date(timestampBuffer[timestampBuffer.length - 1]).toISOString();
+    const lastPassengerTimetamp = new Date(timestampBuffer[timestampBuffer.length - 2]).toISOString();
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
-      (doorCloseTime - timestampBuffer[timestampBuffer.length - 1]) / 1000;
+      (timestampBuffer[timestampBuffer.length - 2] - firstPassengerTime) / 1000;
 
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
