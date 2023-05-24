@@ -129,7 +129,7 @@ function flashYellowLight() {
   rpio.write(YELLOW_LIGHT, 1); // Turn on the yellow light
   setTimeout(() => {
     rpio.write(YELLOW_LIGHT, 0); // Turn off the yellow light after 1/2 second
-  }, 100);
+  }, 250);
 }
 
 // utility function to close out power to GPIO pins when the program exits
