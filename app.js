@@ -129,7 +129,7 @@ function flashYellowLight() {
   rpio.write(YELLOW_LIGHT, 1); // Turn on the yellow light
   setTimeout(() => {
     rpio.write(YELLOW_LIGHT, 0); // Turn off the yellow light after 1/2 second
-  }, 250);
+  }, 100);
 }
 
 // utility function to close out power to GPIO pins when the program exits
@@ -232,7 +232,7 @@ function pollSensor() {
       // Trigger ultrasonic distance measurements every 500 milliseconds
       intervalId = setInterval(() => {
         trigger.trigger(10, 1); // Set trigger high for 10 microseconds
-      }, 100);
+      }, 250);
     }, 3000);
     if (doorCloseTime !== null) {
       lastTurnaroundTime = (doorOpenTime - doorCloseTime) / 1000;
