@@ -12,10 +12,11 @@ Headless Raspberry Pi running Node.js that autoboots.
 - Counts passengers when the loading starts
 - Dashboard to show "real time" test data
 - 3 second delay on people counting when the door opens
+- Live count of passengers on dashboard
 
 ### Next Up
-- Add a 3 second "delay" on people counting when the door closes (seperate variable)
 - Determines/estimtes if the PlaneMate arrived after the flight arrived
+- Add a 3 second "delay" on people counting when the door closes (seperate variable)
 
 ### Features Pending
 
