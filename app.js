@@ -101,7 +101,9 @@ echo.on("alert", (level, tick) => {
           ) {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
-              log("Boarding time started at: " + firstPassengerTime, "min");
+              log("Boarding time started at: " + firstPassengerTime);
+              log("Boarding time started at: " + new Date(firstPassengerTime).toISOString());
+              log("Boarding time started at: " + moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss"));
             }
 
           }
@@ -239,7 +241,6 @@ function pollSensor() {
     setTimeout(() => {
       log("Starting ultrasonic sensor");
       flashRedLight();
-      flashYellowLight();
       // Trigger ultrasonic distance measurements every 500 milliseconds
       intervalId = setInterval(() => {
         trigger.trigger(10, 1); // Set trigger high for 10 microseconds
