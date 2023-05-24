@@ -32,7 +32,7 @@ let intervalId;
 let timestampBuffer = [];
 
 // AirTable setup
-const airtableconfig = require('./airtable.json');
+const airtableconfig = require("./airtable.json");
 const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
 const AIRTABLE_BASE_ID = airtableconfig.AIRTABLE_BASE_ID;
 const AIRTABLE_TABLE_NAME = "Door Log";
@@ -64,6 +64,9 @@ let baseline;
 let personDetected = false;
 let peopleCount; // Counter for people detected
 
+// Add a new variable to track consecutive detections
+let consecutiveDetections = 0;
+
 echo.on("alert", (level, tick) => {
   if (level == 1) {
     startTick = tick;
@@ -77,28 +80,33 @@ echo.on("alert", (level, tick) => {
       log("baseline distance: " + baseline + " cm");
     } else {
       if (!personDetected && Math.abs(distance - baseline) > 30) {
-        log("Person Detected | " + distance + " cm"); // person detected if the distance is more than 30 cm from the baseline
-        flashYellowLight();
-        db.ref('lastTransaction/activePassengerCount').set(peopleCount); // update the active passenger count in Firebase
-        personDetected = true;
-        peopleCount++; // Increase the counter when a person is detected
-        log("Total People Detected: " + peopleCount);
-        timestampBuffer.push(Date.now()); // buffer used to identify the timestamp for the first passenger in the flow
-        // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
-        if (
-          timestampBuffer.length >= 3 &&
-          timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <=
-            60000
-        ) {
-          if (!firstPassengerTime) {
-            firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
-            log(
-              "Boarding time started at: " + firstPassengerTime,
-              "min"
-            );
+        consecutiveDetections++;
+
+        if (consecutiveDetections >= 3) {
+          log("Person Detected | " + distance + " cm"); // person detected if the distance is more than 30 cm from the baseline
+          flashYellowLight();
+          personDetected = true;
+          peopleCount++; // Increase the counter when a person is detected
+          log("Total People Detected: " + peopleCount);
+          timestampBuffer.push(Date.now()); // buffer used to identify the timestamp for the first passenger in the flow
+          db.ref("lastTransaction/activePassengerCount").set(peopleCount); // update the active passenger count in Firebase
+          consecutiveDetections = 0; // reset the consecutive detections
+
+          // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
+          if (
+            timestampBuffer.length >= 3 &&
+            timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <=
+              60000
+          ) {
+            if (!firstPassengerTime) {
+              firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
+              log("Boarding time started at: " + firstPassengerTime, "min");
+            }
+            
           }
         }
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
+        consecutiveDetections = 0; // reset the consecutive detections if no person is detected
         log("Person has passed");
         personDetected = false;
       }
@@ -211,7 +219,7 @@ function pollSensor() {
   if (isOpen && isOpen !== oldIsOpen) {
     console.log("PlaneMate Door OPEN"); // door has been detected to be open
     peopleCount = 0; // reset the people counter
-    db.ref('lastTransaction/activePassengerCount').set(0); // reset the active passenger count in Firebase
+    db.ref("lastTransaction/activePassengerCount").set(0); // reset the active passenger count in Firebase
     timestampBuffer = []; //reset the buffer
     db.ref(`doors/Door${doorNumber}`).set(false); // Update the door open/close status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
@@ -244,7 +252,7 @@ function pollSensor() {
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) closed.`); // Update main message in Firebase
     rpio.write(GREEN_LIGHT, 0);
     rpio.write(RED_LIGHT, 1);
-    
+
     doorCloseTime = Date.now();
 
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
@@ -253,7 +261,8 @@ function pollSensor() {
     // const lastPassengerTimetamp = new Date(secondLastPassengerTime).toISOString();
     const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length - 1];
     const closeTimestamp = new Date(doorCloseTime).toISOString();
-    const boardingDuration = (doorCloseTime - timestampBuffer[timestampBuffer.length - 1]) / 1000;
+    const boardingDuration =
+      (doorCloseTime - timestampBuffer[timestampBuffer.length - 1]) / 1000;
 
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
@@ -282,8 +291,12 @@ function pollSensor() {
       db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
-      db.ref(`lastTransaction/firstPassengerTimestamp`).set(firstPassengerTimestamp);
-      db.ref(`lastTransaction/lastPassengerTimestamp`).set(lastPassengerTimetamp);
+      db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+        firstPassengerTimestamp
+      );
+      db.ref(`lastTransaction/lastPassengerTimestamp`).set(
+        lastPassengerTimetamp
+      );
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
     }
   }
