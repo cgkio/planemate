@@ -102,7 +102,7 @@ echo.on("alert", (level, tick) => {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
               log("Boarding time started at: " + firstPassengerTime, "min");
             }
-            
+
           }
         }
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
@@ -231,7 +231,7 @@ function pollSensor() {
       // Trigger ultrasonic distance measurements every 500 milliseconds
       intervalId = setInterval(() => {
         trigger.trigger(10, 1); // Set trigger high for 10 microseconds
-      }, 500);
+      }, 100);
     }, 3000);
     if (doorCloseTime !== null) {
       lastTurnaroundTime = (doorOpenTime - doorCloseTime) / 1000;
@@ -259,7 +259,7 @@ function pollSensor() {
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
     // const lastPassengerTimetamp = new Date(secondLastPassengerTime).toISOString();
-    const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length - 1];
+    const lastPassengerTimetamp = new Date(timestampBuffer[timestampBuffer.length - 1]).toISOString();
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
       (doorCloseTime - timestampBuffer[timestampBuffer.length - 1]) / 1000;
@@ -272,7 +272,7 @@ function pollSensor() {
         "Door Open": openTimestamp,
         "Door Close": closeTimestamp,
         "Door Open Duration": doorOpenDuration,
-        "Passengers Counted": peopleCount - 1,
+        "Passengers Counted": peopleCount,
         "Boarding Start": firstPassengerTimestamp,
         "Boarding Stop": lastPassengerTimetamp,
         boardingDuration: boardingDuration,
@@ -290,7 +290,7 @@ function pollSensor() {
       db.ref(`lastTransaction/openTimestamp`).set(openTimestamp);
       db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
-      db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
+      db.ref(`lastTransaction/peopleCount`).set(peopleCount);
       db.ref(`lastTransaction/firstPassengerTimestamp`).set(
         firstPassengerTimestamp
       );
