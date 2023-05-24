@@ -129,7 +129,15 @@ function flashYellowLight() {
   rpio.write(YELLOW_LIGHT, 1); // Turn on the yellow light
   setTimeout(() => {
     rpio.write(YELLOW_LIGHT, 0); // Turn off the yellow light after 1/2 second
-  }, 100);
+  }, 200);
+}
+
+// function to briefly turn on the red light
+function flashRedLight() {
+  rpio.write(RED_LIGHT, 1); // Turn on the red light
+  setTimeout(() => {
+    rpio.write(RED_LIGHT, 0); // Turn off the red light after 1/2 second
+  }, 200);
 }
 
 // utility function to close out power to GPIO pins when the program exits
@@ -229,6 +237,9 @@ function pollSensor() {
     doorOpenTime = Date.now();
     // Start the ultrasonic sensor after a 3-second delay
     setTimeout(() => {
+      log("Starting ultrasonic sensor");
+      flashRedLight();
+      flashYellowLight();
       // Trigger ultrasonic distance measurements every 500 milliseconds
       intervalId = setInterval(() => {
         trigger.trigger(10, 1); // Set trigger high for 10 microseconds
@@ -247,6 +258,12 @@ function pollSensor() {
     }
   } else if (isOpen !== oldIsOpen) {
     console.log("PlaneMate Door CLOSED"); // door has been detected to be closed
+
+
+
+    db.ref("lastTransaction/activePassengerCount").set(peopleCount - 1); // update the active passenger count in Firebase
+
+
 
     clearInterval(intervalId); // Stop the interval
     db.ref(`doors/Door${doorNumber}`).set(true); // Update the door status in Firebase
@@ -272,7 +289,7 @@ function pollSensor() {
         "Door Open": openTimestamp,
         "Door Close": closeTimestamp,
         "Door Open Duration": doorOpenDuration,
-        "Passengers Counted": peopleCount,
+        "Passengers Counted": peopleCount - 1,
         "Boarding Start": firstPassengerTimestamp,
         "Boarding Stop": lastPassengerTimetamp,
         boardingDuration: boardingDuration,
@@ -290,7 +307,7 @@ function pollSensor() {
       db.ref(`lastTransaction/openTimestamp`).set(openTimestamp);
       db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
-      db.ref(`lastTransaction/peopleCount`).set(peopleCount);
+      db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
       db.ref(`lastTransaction/firstPassengerTimestamp`).set(
         firstPassengerTimestamp
       );
