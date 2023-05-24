@@ -80,6 +80,7 @@ echo.on("alert", (level, tick) => {
       log("baseline distance: " + baseline + " cm");
     } else {
       if (!personDetected && Math.abs(distance - baseline) > 30) {
+
         consecutiveDetections++;
 
         if (consecutiveDetections >= 3) {
@@ -105,8 +106,8 @@ echo.on("alert", (level, tick) => {
 
           }
         }
+
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
-        consecutiveDetections = 0; // reset the consecutive detections if no person is detected
         log("Person has passed");
         personDetected = false;
       }
