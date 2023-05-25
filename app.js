@@ -10,6 +10,10 @@ const moment = require("moment");
 const Gpio = require("pigpio").Gpio;
 const Airtable = require("airtable");
 
+rpio.init({
+  gpiomem: true
+});
+
 // Raspberry Pi 4 pin assignments
 const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
 const RED_LIGHT = 21; // red LED light
