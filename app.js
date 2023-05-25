@@ -281,7 +281,7 @@ function pollSensor() {
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
 
-    if (doorOpenDuration > 10) {
+    if (doorOpenDuration > 10) { // Only process a record if the door was open for more than 10 seconds
       const fields = {
         "Door Open": openTimestamp,
         "Door Close": closeTimestamp,
@@ -308,15 +308,16 @@ function pollSensor() {
       db.ref(`lastTransaction/firstPassengerTimestamp`).set(firstPassengerTimestamp);
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(lastPassengerTimetamp);
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
-    }
 
-  // Update the KPIs in Firebase every 10 door cycles
-  if (doorCycleCount >= 10) {
-    doorCycleCount = 0;
-    await storeAverage("stats/AverageBoardingTime", "boardingDuration", true);
-    await storeAverage("stats/AverageLoad", "Passengers Counted", false);
-    await storeAverage("stats/AverageTurnaroundTimeOverall", "Turnaround Time", true);
-    log("KPIs updated");
+    // Update the KPIs in Firebase every 10 door cycles
+    if (doorCycleCount >= 10) {
+      doorCycleCount = 0;
+      await storeAverage("stats/AverageBoardingTime", "boardingDuration", true);
+      await storeAverage("stats/AverageLoad", "Passengers Counted", false);
+      await storeAverage("stats/AverageTurnaroundTimeOverall", "Turnaround Time", true);
+      log("KPIs updated");
+      }
+
     }
 
   setTimeout(pollSensor, 100);
