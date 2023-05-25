@@ -319,11 +319,13 @@ function pollSensor() {
     // Update the KPIs in Firebase every 10 door cycles
     if (doorCycleCount >= 10) {
       doorCycleCount = 0;
-      await storeAverage("stats/AverageBoardingTime", "boardingDuration", true);
-      await storeAverage("stats/AverageLoad", "Passengers Counted", false);
-      await storeAverage("stats/AverageTurnaroundTimeOverall", "Turnaround Time", true);
-      log("KPIs updated");
-      }
+      (async () => {
+        await storeAverage("stats/AverageBoardingTime", "boardingDuration", true);
+        await storeAverage("stats/AverageLoad", "Passengers Counted", false);
+        await storeAverage("stats/AverageTurnaroundTimeOverall", "Turnaround Time", true);
+        log("KPIs updated");
+      })();
+    }    
 
     }
 
