@@ -203,14 +203,14 @@ async function lightsShow() {
   let endTime = Date.now() + 5000; // 5 seconds from now
 
   while (Date.now() < endTime) {
-      switchLightOn(RED_LIGHT);
-      await sleep(500); // wait for 500 milliseconds
-      switchLightOn(YELLOW_LIGHT);
-      await sleep(500); // wait for 500 milliseconds
       switchLightOn(GREEN_LIGHT);
-      await sleep(500); // wait for 500 milliseconds
+      await sleep(250); // wait for 250 milliseconds
       switchLightOn(YELLOW_LIGHT);
-      await sleep(500); // wait for 500 milliseconds
+      await sleep(250);
+      switchLightOn(RED_LIGHT);
+      await sleep(250);
+      switchLightOn(YELLOW_LIGHT);
+      await sleep(250);
   }
 
   // Turn off all lights at the end of the light show
