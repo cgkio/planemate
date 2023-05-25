@@ -68,6 +68,9 @@ let peopleCount; // Counter for people detected
 // Add a new variable to track consecutive detections
 let consecutiveDetections = 0;
 
+// Add a new variable to track consecutive baselines
+let consecutiveBaselines = 0;
+
 echo.on("alert", (level, tick) => {
   if (level == 1) {
     startTick = tick;
@@ -111,8 +114,12 @@ echo.on("alert", (level, tick) => {
         }
 
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
-        log("Person has passed");
-        personDetected = false;
+        consecutiveBaselines++;
+        if consecutiveBaselines >= 3) {
+          personDetected = false;
+          log("3 baseline measurements detected - Person has passed");
+          consecutiveBaselines = 0;
+        }
       }
     }
   }
