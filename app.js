@@ -31,6 +31,7 @@ let lastTurnaroundTime = null;
 let intervalId;
 let timestampBuffer = [];
 let doorCycleCount = 0;
+let planeMateOnTime = false; // Set to false by default
 
 // AirTable setup
 const airtableconfig = require("./airtable.json");
@@ -293,6 +294,12 @@ function pollSensor() {
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
 
+    if (firstPassengerTime - doorOpenTime <= 30000) {
+      planeMateOnTime = true;
+    } else {
+      planeMateOnTime = false;
+    }
+
     if (doorOpenDuration > 10) {
       // Only process a record if the door was open for more than 10 seconds
       const fields = {
@@ -303,6 +310,7 @@ function pollSensor() {
         "Boarding Start": firstPassengerTimestamp,
         "Boarding Stop": lastPassengerTimetamp,
         boardingDuration: boardingDuration,
+        "PlaneMate On-Time": planeMateOnTime,
       };
 
       if (lastTurnaroundTime !== null && lastTurnaroundTime < 20 * 60) {
@@ -325,6 +333,11 @@ function pollSensor() {
         lastPassengerTimetamp
       );
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
+      if ((planeMateOnTime = TRUE)) {
+        db.ref(`lastTransaction/planeMateOnTime`).set("Yes");
+      } else {
+        db.ref(`lastTransaction/planeMateOnTime`).set("No");
+      };
 
       // Update the KPIs in Firebase every 10 door cycles
       if (doorCycleCount >= 10) {
