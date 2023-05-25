@@ -189,6 +189,36 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function switchLightOn(light) {
+  // First turn off all lights
+  rpio.write(RED_LIGHT, 0);
+  rpio.write(YELLOW_LIGHT, 0);
+  rpio.write(GREEN_LIGHT, 0);
+
+  // Then turn the specific light on
+  rpio.write(light, 1);
+}
+
+async function lightsShow() {
+  let endTime = Date.now() + 5000; // 5 seconds from now
+
+  while (Date.now() < endTime) {
+      switchLightOn(RED_LIGHT);
+      await sleep(500); // wait for 500 milliseconds
+      switchLightOn(YELLOW_LIGHT);
+      await sleep(500); // wait for 500 milliseconds
+      switchLightOn(GREEN_LIGHT);
+      await sleep(500); // wait for 500 milliseconds
+      switchLightOn(YELLOW_LIGHT);
+      await sleep(500); // wait for 500 milliseconds
+  }
+
+  // Turn off all lights at the end of the light show
+  rpio.write(RED_LIGHT, 0);
+  rpio.write(YELLOW_LIGHT, 0);
+  rpio.write(GREEN_LIGHT, 0);
+}
+
 // utility function to close out power to GPIO pins when the program exits
 function cleanupLights() {
   log("cleaning up the GPIO pins");
@@ -519,8 +549,9 @@ async function storeData(url, fieldName, isTime = false, isPercentage = false) {
 
 // primary function that runs when the program starts
 async function main() {
-  await getDoorAssignment();
   turnOffAllLights();
+  await getDoorAssignment();
+  await lightsShow()
   await waitForDoorToClose();
   pollSensor();
 }
