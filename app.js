@@ -200,7 +200,7 @@ function switchLightOn(light) {
 }
 
 async function lightsShow() {
-  let endTime = Date.now() + 5000; // 5 seconds from now
+  let endTime = Date.now() + 10000; // 10 seconds from now
 
   while (Date.now() < endTime) {
       switchLightOn(GREEN_LIGHT);
