@@ -8,6 +8,7 @@ const macaddress = require("macaddress");
 const firebaseAdmin = require("firebase-admin");
 const moment = require("moment");
 const Gpio = require("pigpio").Gpio;
+const Airtable = require("airtable");
 
 // Raspberry Pi 4 pin assignments
 const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
@@ -25,7 +26,6 @@ let doorOpenTime = null;
 let dockNumber = null;
 let doorNumber = null;
 let firstPassengerTime = null;
-let secondLastPassengerTime = null;
 let doorCloseTime = null;
 let lastTurnaroundTime = null;
 let intervalId;
@@ -333,26 +333,39 @@ function pollSensor() {
         lastPassengerTimetamp
       );
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
-      if ((planeMateOnTime == true)) {
+      if (planeMateOnTime == true) {
         db.ref(`lastTransaction/planeMateOnTime`).set("Yes");
       } else {
         db.ref(`lastTransaction/planeMateOnTime`).set("No");
-      };
+      }
 
       // Update the KPIs in Firebase every 10 door cycles
       if (doorCycleCount >= 10) {
         doorCycleCount = 0;
         (async () => {
-          await storeAverage(
+          await storeData(
             "stats/AverageBoardingTime",
             "boardingDuration",
+            true,
+            false
+          );
+          await storeData(
+            "stats/AverageLoad",
+            "Passengers Counted",
+            false,
+            false
+          );
+          await storeData(
+            "stats/planeMateOnTime",
+            "PlaneMate On-Time",
+            false,
             true
           );
-          await storeAverage("stats/AverageLoad", "Passengers Counted", false);
-          await storeAverage(
+          await storeData(
             "stats/AverageTurnaroundTimeOverall",
             "Turnaround Time",
-            true
+            true,
+            false
           );
           log("KPIs updated");
         })();
@@ -406,18 +419,53 @@ async function calculateAverage(fieldName, isTime) {
   }
 }
 
-// Store KPI data in Firebase
-async function storeAverage(url, fieldName, isTime) {
-  let avg;
+// Calculate the percentage of on-time PlaneMate arrivals
+async function calculateOnTimePercentage(fieldName) {
+  let records;
   try {
-    avg = await calculateAverage(fieldName, isTime);
+    records = await base(AIRTABLE_TABLE_NAME)
+      .select({
+        maxRecords: 100,
+        view: "Grid view",
+        filterByFormula: `AND(IS_AFTER({Door Close}, DATEADD(NOW(), -30, 'days')), NOT({${fieldName}} = BLANK()))`,
+      })
+      .all();
   } catch (error) {
-    console.error("Error calculating average:", error);
+    console.error("Error fetching data from Airtable:", error);
     return;
   }
-  console.log("avg: " + avg);
+
+  let count = 0;
+  let onTimeCount = 0;
+  for (let record of records) {
+    if (record.get(fieldName)) {
+      onTimeCount++;
+    }
+    count++;
+  }
+
+  let onTimePercentage = (onTimeCount / count) * 100;
+
+  // Round onTimePercentage to 2 decimal places
+  return onTimePercentage.toFixed(2) + "%";
+}
+
+// Store KPI data in Firebase
+async function storeData(url, fieldName, isTime = false, isPercentage = false) {
+  let result;
+  try {
+    if (isPercentage) {
+      result = await calculateOnTimePercentage(fieldName);
+    } else {
+      result = await calculateAverage(fieldName, isTime);
+    }
+  } catch (error) {
+    console.error("Error calculating data:", error);
+    return;
+  }
+
   let ref = db.ref(url);
-  return ref.set(avg).catch((error) => {
+  ref.set(result).catch((error) => {
     console.error("Error updating Firebase:", error);
   });
 }
