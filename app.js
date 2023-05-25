@@ -84,7 +84,6 @@ echo.on("alert", (level, tick) => {
       log("baseline distance: " + baseline + " cm");
     } else {
       if (!personDetected && Math.abs(distance - baseline) > 30) {
-
         consecutiveDetections++;
 
         if (consecutiveDetections >= 3) {
@@ -106,13 +105,17 @@ echo.on("alert", (level, tick) => {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
               log("Boarding time started at: " + firstPassengerTime);
-              log("Boarding time started at: " + new Date(firstPassengerTime).toISOString());
-              log("Boarding time started at: " + moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss"));
+              log(
+                "Boarding time started at: " +
+                  new Date(firstPassengerTime).toISOString()
+              );
+              log(
+                "Boarding time started at: " +
+                  moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
+              );
             }
-
           }
         }
-
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
         consecutiveBaselines++;
         if (consecutiveBaselines >= 3) {
@@ -280,7 +283,9 @@ function pollSensor() {
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
-    const lastPassengerTimetamp = new Date(timestampBuffer[timestampBuffer.length - 2]).toISOString();
+    const lastPassengerTimetamp = new Date(
+      timestampBuffer[timestampBuffer.length - 2]
+    ).toISOString();
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
       (timestampBuffer[timestampBuffer.length - 2] - firstPassengerTime) / 1000;
@@ -288,7 +293,8 @@ function pollSensor() {
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
 
-    if (doorOpenDuration > 10) { // Only process a record if the door was open for more than 10 seconds
+    if (doorOpenDuration > 10) {
+      // Only process a record if the door was open for more than 10 seconds
       const fields = {
         "Door Open": openTimestamp,
         "Door Close": closeTimestamp,
@@ -312,22 +318,34 @@ function pollSensor() {
       db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
-      db.ref(`lastTransaction/firstPassengerTimestamp`).set(firstPassengerTimestamp);
-      db.ref(`lastTransaction/lastPassengerTimestamp`).set(lastPassengerTimetamp);
+      db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+        firstPassengerTimestamp
+      );
+      db.ref(`lastTransaction/lastPassengerTimestamp`).set(
+        lastPassengerTimetamp
+      );
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
 
-    // Update the KPIs in Firebase every 10 door cycles
-    if (doorCycleCount >= 10) {
-      doorCycleCount = 0;
-      (async () => {
-        await storeAverage("stats/AverageBoardingTime", "boardingDuration", true);
-        await storeAverage("stats/AverageLoad", "Passengers Counted", false);
-        await storeAverage("stats/AverageTurnaroundTimeOverall", "Turnaround Time", true);
-        log("KPIs updated");
-      })();
-    }    
-
+      // Update the KPIs in Firebase every 10 door cycles
+      if (doorCycleCount >= 10) {
+        doorCycleCount = 0;
+        (async () => {
+          await storeAverage(
+            "stats/AverageBoardingTime",
+            "boardingDuration",
+            true
+          );
+          await storeAverage("stats/AverageLoad", "Passengers Counted", false);
+          await storeAverage(
+            "stats/AverageTurnaroundTimeOverall",
+            "Turnaround Time",
+            true
+          );
+          log("KPIs updated");
+        })();
+      }
     }
+  }
 
   setTimeout(pollSensor, 100);
 }
