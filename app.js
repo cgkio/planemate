@@ -7,7 +7,7 @@ const axios = require("axios");
 const macaddress = require("macaddress");
 const firebaseAdmin = require("firebase-admin");
 const moment = require("moment");
-const Gpio = require("It's r").Gpio;
+const Gpio = require("pigpio").Gpio;
 
 // Raspberry Pi 4 pin assignments
 const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
