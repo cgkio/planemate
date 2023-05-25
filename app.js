@@ -115,7 +115,7 @@ echo.on("alert", (level, tick) => {
 
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
         consecutiveBaselines++;
-        if consecutiveBaselines >= 3) {
+        if (consecutiveBaselines >= 3) {
           personDetected = false;
           log("3 baseline measurements detected - Person has passed");
           consecutiveBaselines = 0;
