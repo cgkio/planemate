@@ -7,7 +7,7 @@ const axios = require("axios");
 const macaddress = require("macaddress");
 const firebaseAdmin = require("firebase-admin");
 const moment = require("moment");
-const Gpio = require("pigpio").Gpio;
+const Gpio = require("It's r").Gpio;
 
 // Raspberry Pi 4 pin assignments
 const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
@@ -30,6 +30,7 @@ let doorCloseTime = null;
 let lastTurnaroundTime = null;
 let intervalId;
 let timestampBuffer = [];
+let doorCycleCount = 0;
 
 // AirTable setup
 const airtableconfig = require("./airtable.json");
@@ -259,13 +260,8 @@ function pollSensor() {
     }
   } else if (isOpen !== oldIsOpen) {
     console.log("PlaneMate Door CLOSED"); // door has been detected to be closed
-
-
-
     db.ref("lastTransaction/activePassengerCount").set(peopleCount - 1); // update the active passenger count in Firebase
-
-
-
+    doorCycleCount++; // increment the door cycle count
     clearInterval(intervalId); // Stop the interval
     db.ref(`doors/Door${doorNumber}`).set(true); // Update the door status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) closed.`); // Update main message in Firebase
@@ -309,15 +305,19 @@ function pollSensor() {
       db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
-      db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-        firstPassengerTimestamp
-      );
-      db.ref(`lastTransaction/lastPassengerTimestamp`).set(
-        lastPassengerTimetamp
-      );
+      db.ref(`lastTransaction/firstPassengerTimestamp`).set(firstPassengerTimestamp);
+      db.ref(`lastTransaction/lastPassengerTimestamp`).set(lastPassengerTimetamp);
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
     }
-  }
+
+  // Update the KPIs in Firebase every 10 door cycles
+  if (doorCycleCount >= 10) {
+    doorCycleCount = 0;
+    await storeAverage("stats/AverageBoardingTime", "boardingDuration", true);
+    await storeAverage("stats/AverageLoad", "Passengers Counted", false);
+    await storeAverage("stats/AverageTurnaroundTimeOverall", "Turnaround Time", true);
+    log("KPIs updated");
+    }
 
   setTimeout(pollSensor, 100);
 }
@@ -333,6 +333,52 @@ async function updateMainMsg(message) {
   } catch (error) {
     console.error(`Error updating main message in Firebase:`, error);
   }
+}
+
+// Calculate KPI data from Airtable
+async function calculateAverage(fieldName, isTime) {
+  let records;
+  try {
+    records = await base(AIRTABLE_TABLE_NAME)
+      .select({
+        maxRecords: 100,
+        view: "Grid view",
+        filterByFormula: `AND(IS_AFTER({Door Close}, DATEADD(NOW(), -30, 'days')), NOT({${fieldName}} = ''))`,
+      })
+      .all();
+  } catch (error) {
+    console.error("Error fetching data from Airtable:", error);
+    return;
+  }
+  let sum = 0;
+  let count = 0;
+  for (let record of records) {
+    sum += Number(record.get(fieldName));
+    count++;
+  }
+  let avg = sum / count;
+  if (isTime) {
+    return moment.utc(avg * 1000).format("mm:ss");
+  } else {
+    // Round average load to 2 decimal places
+    return avg.toFixed(2);
+  }
+}
+
+// Store KPI data in Firebase
+async function storeAverage(url, fieldName, isTime) {
+  let avg;
+  try {
+    avg = await calculateAverage(fieldName, isTime);
+  } catch (error) {
+    console.error("Error calculating average:", error);
+    return;
+  }
+  console.log("avg: " + avg);
+  let ref = db.ref(url);
+  return ref.set(avg).catch((error) => {
+    console.error("Error updating Firebase:", error);
+  });
 }
 
 // primary function that runs when the program starts
