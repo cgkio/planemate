@@ -333,7 +333,7 @@ function pollSensor() {
         lastPassengerTimetamp
       );
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
-      if ((planeMateOnTime = TRUE)) {
+      if ((planeMateOnTime == true)) {
         db.ref(`lastTransaction/planeMateOnTime`).set("Yes");
       } else {
         db.ref(`lastTransaction/planeMateOnTime`).set("No");
