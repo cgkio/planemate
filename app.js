@@ -150,12 +150,43 @@ function flashYellowLight() {
   }, 200);
 }
 
-// function to briefly turn on the red light
-function flashRedLight() {
-  rpio.write(RED_LIGHT, 1); // Turn on the red light
-  setTimeout(() => {
-    rpio.write(RED_LIGHT, 0); // Turn off the red light after 1/2 second
-  }, 200);
+// This function flashes all the lights and restores the original state
+async function flashAllLights() {
+  // Save the current state of the lights
+  let redLightState = rpio.read(RED_LIGHT);
+  let yellowLightState = rpio.read(YELLOW_LIGHT);
+  let greenLightState = rpio.read(GREEN_LIGHT);
+
+  // Turn on all the lights
+  rpio.write(RED_LIGHT, 1);
+  rpio.write(YELLOW_LIGHT, 1);
+  rpio.write(GREEN_LIGHT, 1);
+
+  // Wait for a moment
+  await sleep(1000); // sleep function can be implemented as: function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  // Turn off all the lights
+  rpio.write(RED_LIGHT, 0);
+  rpio.write(YELLOW_LIGHT, 0);
+  rpio.write(GREEN_LIGHT, 0);
+
+  // Restore the original state of the lights
+  rpio.write(RED_LIGHT, redLightState);
+  rpio.write(YELLOW_LIGHT, yellowLightState);
+  rpio.write(GREEN_LIGHT, greenLightState);
+}
+
+// Please ensure to call the flashAllLights function with await keyword if you are calling it inside an async function.
+// await flashAllLights();
+
+// If you're calling it from a non-async function, you can use .then:
+// flashAllLights().then(() => {
+//     console.log('Flashing complete');
+// });
+
+// utility function to pause the program for a specified number of milliseconds
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // utility function to close out power to GPIO pins when the program exits
@@ -252,11 +283,16 @@ function pollSensor() {
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
     rpio.write(RED_LIGHT, 0);
     rpio.write(GREEN_LIGHT, 1);
+
+    setTimeout(async function () { // Wait for 10 seconds before flashing the lights to signify that we've passed the 10-second mark
+      await flashAllLights();
+    }, 10000); // 10000 milliseconds = 10 seconds
+
     doorOpenTime = Date.now();
     // Start the ultrasonic sensor after a 3-second delay
     setTimeout(() => {
       log("Starting ultrasonic sensor");
-      flashRedLight();
+      flashAllLights();
       // Trigger ultrasonic distance measurements every 500 milliseconds
       intervalId = setInterval(() => {
         trigger.trigger(10, 1); // Set trigger high for 10 microseconds
@@ -298,9 +334,15 @@ function pollSensor() {
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
 
-    if (firstPassengerTime - doorOpenTime <= 30000 && lastTurnaroundTime < 20 * 60) {
+    if (
+      firstPassengerTime - doorOpenTime <= 30000 &&
+      lastTurnaroundTime < 20 * 60
+    ) {
       planeMateOnTime = "Yes";
-    } else if (firstPassengerTime - doorOpenTime <= 30000 && lastTurnaroundTime >= 20 * 60) {
+    } else if (
+      firstPassengerTime - doorOpenTime <= 30000 &&
+      lastTurnaroundTime >= 20 * 60
+    ) {
       planeMateOnTime = "No";
     } else {
       planeMateOnTime = "N/A";
@@ -452,9 +494,8 @@ async function calculateOnTimePercentage(fieldName) {
   // Calculate percentage of "Yes" responses, rounded to two decimal places
   let percentage = ((yesCount / (yesCount + noCount)) * 100).toFixed(2);
 
-  return percentage;
+  return percentage + "%";
 }
-
 
 // Store KPI data in Firebase
 async function storeData(url, fieldName, isTime = false, isPercentage = false) {
