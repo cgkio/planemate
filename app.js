@@ -294,10 +294,12 @@ function pollSensor() {
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
 
-    if (firstPassengerTime - doorOpenTime <= 30000) {
-      planeMateOnTime = true;
+    if (firstPassengerTime - doorOpenTime <= 30000 && lastTurnaroundTime < 20 * 60) {
+      planeMateOnTime = "Yes";
+    } else if (firstPassengerTime - doorOpenTime <= 30000 && lastTurnaroundTime >= 20 * 60) {
+      planeMateOnTime = "No";
     } else {
-      planeMateOnTime = false;
+      planeMateOnTime = "N/A";
     }
 
     if (doorOpenDuration > 10) {
@@ -333,14 +335,10 @@ function pollSensor() {
         lastPassengerTimetamp
       );
       db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
-      if (planeMateOnTime == true) {
-        db.ref(`lastTransaction/planeMateOnTime`).set("Yes");
-      } else {
-        db.ref(`lastTransaction/planeMateOnTime`).set("No");
-      }
+      db.ref(`lastTransaction/planeMateOnTime`).set(planeMateOnTime);
 
       // Update the KPIs in Firebase every 10 door cycles
-      if (doorCycleCount >= 10) {
+      if (doorCycleCount >= 2) {
         doorCycleCount = 0;
         (async () => {
           await storeData(
@@ -427,7 +425,7 @@ async function calculateOnTimePercentage(fieldName) {
       .select({
         maxRecords: 100,
         view: "Grid view",
-        filterByFormula: `AND(IS_AFTER({Door Close}, DATEADD(NOW(), -30, 'days')), NOT({${fieldName}} = BLANK()))`,
+        filterByFormula: `AND(IS_AFTER({Door Close}, DATEADD(NOW(), -30, 'days')), NOT({${fieldName}} = ''))`,
       })
       .all();
   } catch (error) {
@@ -435,20 +433,24 @@ async function calculateOnTimePercentage(fieldName) {
     return;
   }
 
-  let count = 0;
-  let onTimeCount = 0;
+  let yesCount = 0;
+  let noCount = 0;
+
   for (let record of records) {
-    if (record.get(fieldName)) {
-      onTimeCount++;
+    let response = record.get(fieldName);
+    if (response === "Yes") {
+      yesCount++;
+    } else if (response === "No") {
+      noCount++;
     }
-    count++;
   }
 
-  let onTimePercentage = (onTimeCount / count) * 100;
+  // Calculate percentage of "Yes" responses, rounded to two decimal places
+  let percentage = ((yesCount / (yesCount + noCount)) * 100).toFixed(2);
 
-  // Round onTimePercentage to 2 decimal places
-  return onTimePercentage.toFixed(2) + "%";
+  return percentage;
 }
+
 
 // Store KPI data in Firebase
 async function storeData(url, fieldName, isTime = false, isPercentage = false) {
