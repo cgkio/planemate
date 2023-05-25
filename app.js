@@ -38,6 +38,10 @@ const airtableconfig = require("./airtable.json");
 const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
 const AIRTABLE_BASE_ID = airtableconfig.AIRTABLE_BASE_ID;
 const AIRTABLE_TABLE_NAME = "Door Log";
+// Initialize Airtable
+const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
+
+// Axios setup
 axios.defaults.baseURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
 axios.defaults.headers.common["Authorization"] = `Bearer ${AIRTABLE_API_KEY}`;
 axios.defaults.headers.post["Content-Type"] = "application/json";
