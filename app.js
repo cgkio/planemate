@@ -37,6 +37,16 @@ let timestampBuffer = [];
 let doorCycleCount = 0;
 let planeMateOnTime = false; // Set to false by default
 
+// Default global variables for configuring algorithms
+let baselineDetectedPulses = 3; // Number of consecutive pulses to detect a baseline
+let personDetectedPulses = 3; // Number of consecutive pulses to detect a person
+let initialDoorOpenDelay = 3000; // Number of milliseconds to wait before turning on the ultrasonic sensor
+let boardingStartPersons = 3; // Number of people to detect before recognizing boarding has started
+let boardingStartTimeWindow = 30000; // Number of milliseconds to wait before recognizing boarding has started if boardingStartPersons has been detected
+let turnaroundReset = 20; // Number of minutes to wait before resetting PlaneMate operations (for turnaround time calculations)
+
+let baselineVarianceLimit = 50; // Number of centimeters to allow for variance from the baseline
+
 // AirTable setup
 const airtableconfig = require("./airtable.json");
 const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
@@ -92,10 +102,10 @@ echo.on("alert", (level, tick) => {
       baseline = distance; // Set the first reading as baseline
       log("baseline distance: " + baseline + " cm");
     } else {
-      if (!personDetected && Math.abs(distance - baseline) > 30) {
+      if (!personDetected && Math.abs(distance - baseline) > baselineVarianceLimit) {
         consecutiveDetections++;
 
-        if (consecutiveDetections >= 3) {
+        if (consecutiveDetections >= personDetectedPulses) {
           log("Person Detected | " + distance + " cm"); // person detected if the distance is more than 30 cm from the baseline
           flashYellowLight();
           personDetected = true;
@@ -107,12 +117,15 @@ echo.on("alert", (level, tick) => {
 
           // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
           if (
-            timestampBuffer.length >= 3 &&
+            timestampBuffer.length >= boardingStartPersons &&
             timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <=
               60000
           ) {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
+              db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+                firstPassengerTimestamp
+              ); // update the first passenger timestamp in Firebase for display on the dashboard
               log("Boarding time started at: " + firstPassengerTime);
               log(
                 "Boarding time started at: " +
@@ -311,18 +324,25 @@ function pollSensor() {
   if (isOpen && isOpen !== oldIsOpen) {
     console.log("PlaneMate Door OPEN"); // door has been detected to be open
     peopleCount = 0; // reset the people counter
-    db.ref("lastTransaction/activePassengerCount").set(0); // reset the active passenger count in Firebase
+    db.ref("lastTransaction/activePassengerCount").set(0); // reset the active passenger count in Firebase for display on the dashboard
+    db.ref(`lastTransaction/location`).set("Door " + doorNumber + " | Dock " + dockNumber); // update the location in Firebase for display on the dashboard
     timestampBuffer = []; //reset the buffer
     db.ref(`doors/Door${doorNumber}`).set(false); // Update the door open/close status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
     rpio.write(RED_LIGHT, 0);
     rpio.write(GREEN_LIGHT, 1);
-
     setTimeout(async function () { // Wait for 10 seconds before flashing the lights to signify that we've passed the 10-second mark
       await flashAllLights();
     }, 10000); // 10000 milliseconds = 10 seconds
-
     doorOpenTime = Date.now();
+    db.ref(`lastTransaction/openTimestamp`).set(Date.now()); // update the door open time in Firebase for display on the dashboard
+    db.ref(`lastTransaction/closeTimestamp`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/boardingDuration`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/planeMateOnTime`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/firstPassengerTimestamp`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/lastPassengerTimestamp`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/doorOpenDuration`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/turnaroundTime`).set("_______"); // update for display on the dashboard
     // Start the ultrasonic sensor after a 3-second delay
     setTimeout(() => {
       log("Starting ultrasonic sensor");
@@ -404,13 +424,13 @@ function pollSensor() {
       });
 
       // Update the latest action stats in Firebase
-      db.ref(`lastTransaction/openTimestamp`).set(openTimestamp);
+      // db.ref(`lastTransaction/openTimestamp`).set(openTimestamp);
       db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
-      db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-        firstPassengerTimestamp
-      );
+      // db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+      //   firstPassengerTimestamp
+      // );
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(
         lastPassengerTimetamp
       );

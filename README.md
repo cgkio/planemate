@@ -127,6 +127,22 @@ sudo systemctl disable my-nodejs-app.service
 src: https://nodesource.com/blog/running-your-node-js-app-with-systemd-part-1/
 ```
 
+**PM2 Prep work (for GPIO sudo access):**
+
+Create a udev rule:
+sudo nano /etc/udev/rules.d/20-gpiomem.rules
+
+Add the following line to the file, then save and exit:
+KERNEL=="mem", RUN="/bin/chgrp gpio /dev/mem && /bin/chmod g+rw /dev/mem"
+
+Add your user to the gpio group:
+sudo usermod -a -G gpio stratops
+
+Reboot your system:
+sudo reboot
+
+
+
 **PM2 Node App Manager**
 
 https://pm2.keymetrics.io/docs/usage/quick-start/
