@@ -124,7 +124,7 @@ echo.on("alert", (level, tick) => {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
               db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-                firstPassengerTimestamp
+                new Date(firstPassengerTime).toISOString()
               ); // update the first passenger timestamp in Firebase for display on the dashboard
               log("Boarding time started at: " + firstPassengerTime);
               log(
