@@ -393,9 +393,9 @@ function pollSensor() {
         timestampBuffer[timestampBuffer.length - 2]
       ).toISOString();
     } else {
-      const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length];
+      const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
     };
-    
+
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
       (timestampBuffer[timestampBuffer.length - 2] - firstPassengerTime) / 1000;
