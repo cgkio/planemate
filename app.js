@@ -36,6 +36,7 @@ let intervalId;
 let timestampBuffer = [];
 let doorCycleCount = 0;
 let planeMateOnTime = false; // Set to false by default
+const lastPassengerTimetamp = null;
 
 // Default global variables for configuring algorithms
 let baselineDetectedPulses = 3; // Number of consecutive pulses to detect a baseline
@@ -387,8 +388,6 @@ function pollSensor() {
     // const lastPassengerTimetamp = new Date(
     //   timestampBuffer[timestampBuffer.length - 2]
     // ).toISOString();
-
-    const lastPassengerTimetamp;
 
     if (timestampBuffer.length > 2) {
       lastPassengerTimetamp = new Date(
