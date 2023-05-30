@@ -388,13 +388,17 @@ function pollSensor() {
     //   timestampBuffer[timestampBuffer.length - 2]
     // ).toISOString();
 
+    const lastPassengerTimetamp;
+
     if (timestampBuffer.length > 2) {
-      const lastPassengerTimetamp = new Date(
+      lastPassengerTimetamp = new Date(
         timestampBuffer[timestampBuffer.length - 2]
       ).toISOString();
     } else {
-      const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
+      lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
     };
+
+    log("lastPassengerTimetamp: " + lastPassengerTimetamp);
 
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
