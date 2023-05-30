@@ -124,7 +124,7 @@ echo.on("alert", (level, tick) => {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
               db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-                new Date(firstPassengerTime).toISOString()
+                moment(firstPassengerTime).format("LTS")
               ); // update the first passenger timestamp in Firebase for display on the dashboard
               log("Boarding time started at: " + firstPassengerTime);
               log(
@@ -335,7 +335,7 @@ function pollSensor() {
       await flashAllLights();
     }, 10000); // 10000 milliseconds = 10 seconds
     doorOpenTime = Date.now();
-    db.ref(`lastTransaction/openTimestamp`).set(Date.now()); // update the door open time in Firebase for display on the dashboard
+    db.ref(`lastTransaction/openTimestamp`).set(moment().format("LTS")); // update the door open time in Firebase for display on the dashboard
     db.ref(`lastTransaction/closeTimestamp`).set("_______"); // update for display on the dashboard
     db.ref(`lastTransaction/boardingDuration`).set("_______"); // update for display on the dashboard
     db.ref(`lastTransaction/planeMateOnTime`).set("_______"); // update for display on the dashboard
@@ -425,7 +425,7 @@ function pollSensor() {
 
       // Update the latest action stats in Firebase
       // db.ref(`lastTransaction/openTimestamp`).set(openTimestamp);
-      db.ref(`lastTransaction/closeTimestamp`).set(closeTimestamp);
+      db.ref(`lastTransaction/closeTimestamp`).set(moment(closeTimestamp).format("LTS"));
       db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
       // db.ref(`lastTransaction/firstPassengerTimestamp`).set(
