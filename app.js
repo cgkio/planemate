@@ -441,6 +441,7 @@ log("timestampBuffer.length: " + timestampBuffer.length);
 
       if (lastTurnaroundTime !== null && lastTurnaroundTime < 20 * 60) {
         fields["Turnaround Time"] = lastTurnaroundTime;
+        db.ref(`lastTransaction/turnaroundTime`).set(lastTurnaroundTime);
       }
 
       addAirtableRecord(fields).then(() => {
