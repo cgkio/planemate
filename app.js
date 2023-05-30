@@ -401,6 +401,7 @@ function pollSensor() {
     } else {
       planeMateOnTime = "N/A";
     }
+    db.ref(`lastTransaction/planeMateOnTime`).set(planeMateOnTime);
 
     if (doorOpenDuration > 10) {
       // Only process a record if the door was open for more than 10 seconds
@@ -424,9 +425,8 @@ function pollSensor() {
       });
 
       // Update the latest action stats in Firebase
-      // db.ref(`lastTransaction/openTimestamp`).set(openTimestamp);
       db.ref(`lastTransaction/closeTimestamp`).set(moment(closeTimestamp).format("LTS"));
-      db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration);
+      db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration + "seconds");
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
       // db.ref(`lastTransaction/firstPassengerTimestamp`).set(
       //   firstPassengerTimestamp
@@ -434,8 +434,7 @@ function pollSensor() {
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(
         lastPassengerTimetamp
       );
-      db.ref(`lastTransaction/boardingDuration`).set(boardingDuration);
-      db.ref(`lastTransaction/planeMateOnTime`).set(planeMateOnTime);
+      db.ref(`lastTransaction/boardingDuration`).set(boardingDuration + "seconds");
 
       // Update the KPIs in Firebase every 10 door cycles
       if (doorCycleCount >= 2) {
