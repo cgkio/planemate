@@ -11,7 +11,7 @@ const Gpio = require("pigpio").Gpio;
 const Airtable = require("airtable");
 
 rpio.init({
-  gpiomem: true
+  gpiomem: true,
 });
 
 // Raspberry Pi 4 pin assignments
@@ -102,7 +102,10 @@ echo.on("alert", (level, tick) => {
       baseline = distance; // Set the first reading as baseline
       log("baseline distance: " + baseline + " cm");
     } else {
-      if (!personDetected && Math.abs(distance - baseline) > baselineVarianceLimit) {
+      if (
+        !personDetected &&
+        Math.abs(distance - baseline) > baselineVarianceLimit
+      ) {
         consecutiveDetections++;
 
         if (consecutiveDetections >= personDetectedPulses) {
@@ -220,14 +223,14 @@ async function lightsShow() {
   let endTime = Date.now() + 6000; // 6 seconds from now
 
   while (Date.now() < endTime) {
-      switchLightOn(GREEN_LIGHT);
-      await sleep(250); // wait for 250 milliseconds
-      switchLightOn(YELLOW_LIGHT);
-      await sleep(250);
-      switchLightOn(RED_LIGHT);
-      await sleep(250);
-      switchLightOn(YELLOW_LIGHT);
-      await sleep(250);
+    switchLightOn(GREEN_LIGHT);
+    await sleep(250); // wait for 250 milliseconds
+    switchLightOn(YELLOW_LIGHT);
+    await sleep(250);
+    switchLightOn(RED_LIGHT);
+    await sleep(250);
+    switchLightOn(YELLOW_LIGHT);
+    await sleep(250);
   }
 
   // Turn off all lights at the end of the light show
@@ -325,13 +328,16 @@ function pollSensor() {
     console.log("PlaneMate Door OPEN"); // door has been detected to be open
     peopleCount = 0; // reset the people counter
     db.ref("lastTransaction/activePassengerCount").set(0); // reset the active passenger count in Firebase for display on the dashboard
-    db.ref(`lastTransaction/location`).set("Door " + doorNumber + " | Dock " + dockNumber); // update the location in Firebase for display on the dashboard
+    db.ref(`lastTransaction/location`).set(
+      "Door " + doorNumber + " | Dock " + dockNumber
+    ); // update the location in Firebase for display on the dashboard
     timestampBuffer = []; //reset the buffer
     db.ref(`doors/Door${doorNumber}`).set(false); // Update the door open/close status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
     rpio.write(RED_LIGHT, 0);
     rpio.write(GREEN_LIGHT, 1);
-    setTimeout(async function () { // Wait for 10 seconds before flashing the lights to signify that we've passed the 10-second mark
+    setTimeout(async function () {
+      // Wait for 10 seconds before flashing the lights to signify that we've passed the 10-second mark
       await flashAllLights();
     }, 10000); // 10000 milliseconds = 10 seconds
     doorOpenTime = Date.now();
@@ -378,9 +384,18 @@ function pollSensor() {
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
-    const lastPassengerTimetamp = new Date(
-      timestampBuffer[timestampBuffer.length - 2]
-    ).toISOString();
+    // const lastPassengerTimetamp = new Date(
+    //   timestampBuffer[timestampBuffer.length - 2]
+    // ).toISOString();
+
+    if (timestampBuffer.length > 2) {
+      const lastPassengerTimetamp = new Date(
+        timestampBuffer[timestampBuffer.length - 2]
+      ).toISOString();
+    } else {
+      const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length];
+    };
+    
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
       (timestampBuffer[timestampBuffer.length - 2] - firstPassengerTime) / 1000;
@@ -425,8 +440,12 @@ function pollSensor() {
       });
 
       // Update the latest action stats in Firebase
-      db.ref(`lastTransaction/closeTimestamp`).set(moment(closeTimestamp).format("LTS"));
-      db.ref(`lastTransaction/doorOpenDuration`).set(doorOpenDuration + "seconds");
+      db.ref(`lastTransaction/closeTimestamp`).set(
+        moment(closeTimestamp).format("LTS")
+      );
+      db.ref(`lastTransaction/doorOpenDuration`).set(
+        doorOpenDuration + "seconds"
+      );
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
       // db.ref(`lastTransaction/firstPassengerTimestamp`).set(
       //   firstPassengerTimestamp
@@ -434,7 +453,9 @@ function pollSensor() {
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(
         lastPassengerTimetamp
       );
-      db.ref(`lastTransaction/boardingDuration`).set(boardingDuration + "seconds");
+      db.ref(`lastTransaction/boardingDuration`).set(
+        boardingDuration + "seconds"
+      );
 
       // Update the KPIs in Firebase every 10 door cycles
       if (doorCycleCount >= 2) {
@@ -574,7 +595,7 @@ async function storeData(url, fieldName, isTime = false, isPercentage = false) {
 async function main() {
   turnOffAllLights();
   await getDoorAssignment();
-  await lightsShow()
+  await lightsShow();
   await waitForDoorToClose();
   pollSensor();
 }
