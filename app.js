@@ -389,12 +389,15 @@ function pollSensor() {
     //   timestampBuffer[timestampBuffer.length - 2]
     // ).toISOString();
 
+log(timestampBuffer);
+log("timestampBuffer.length: " + timestampBuffer.length);
+
     if (timestampBuffer.length > 2) {
-      lastPassengerTimetamp = new Date(
+      const lastPassengerTimetamp = new Date(
         timestampBuffer[timestampBuffer.length - 2]
       ).toISOString();
     } else {
-      lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
+      const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
     };
 
     log("lastPassengerTimetamp: " + lastPassengerTimetamp);
