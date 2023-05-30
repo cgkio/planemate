@@ -396,9 +396,11 @@ log("timestampBuffer.length: " + timestampBuffer.length);
       const lastPassengerTimetamp = new Date(
         timestampBuffer[timestampBuffer.length - 2]
       ).toISOString();
+    } else if (timestampBuffer.length === 0) {
+      const lastPassengerTimetamp = null;
     } else {
       const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
-    };
+    } ;
 
     log("lastPassengerTimetamp: " + lastPassengerTimetamp);
 
@@ -450,7 +452,7 @@ log("timestampBuffer.length: " + timestampBuffer.length);
         moment(closeTimestamp).format("LTS")
       );
       db.ref(`lastTransaction/doorOpenDuration`).set(
-        doorOpenDuration + "seconds"
+        doorOpenDuration + " seconds"
       );
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
       // db.ref(`lastTransaction/firstPassengerTimestamp`).set(
@@ -460,7 +462,7 @@ log("timestampBuffer.length: " + timestampBuffer.length);
         lastPassengerTimetamp
       );
       db.ref(`lastTransaction/boardingDuration`).set(
-        boardingDuration + "seconds"
+        boardingDuration + " seconds"
       );
 
       // Update the KPIs in Firebase every 10 door cycles
