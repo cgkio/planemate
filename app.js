@@ -122,7 +122,8 @@ echo.on("alert", (level, tick) => {
           // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
           if (
             timestampBuffer.length >= boardingStartPersons &&
-            timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <= boardingStartTimeWindow
+            timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <=
+              boardingStartTimeWindow
           ) {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
@@ -380,8 +381,8 @@ function pollSensor() {
     //   timestampBuffer[timestampBuffer.length - 2]
     // ).toISOString();
 
-log(timestampBuffer);
-log("timestampBuffer.length: " + timestampBuffer.length);
+    log(timestampBuffer);
+    log("timestampBuffer.length: " + timestampBuffer.length);
 
     if (timestampBuffer.length > 2) {
       const lastPassengerTimetamp = new Date(
@@ -390,8 +391,9 @@ log("timestampBuffer.length: " + timestampBuffer.length);
     } else if (timestampBuffer.length === 0) {
       const lastPassengerTimetamp = null;
     } else {
-      const lastPassengerTimetamp = timestampBuffer[timestampBuffer.length-1].toISOString();
-    } ;
+      const lastPassengerTimetamp =
+        timestampBuffer[timestampBuffer.length - 1].toISOString();
+    }
 
     log("lastPassengerTimetamp: " + lastPassengerTimetamp);
 
@@ -402,9 +404,13 @@ log("timestampBuffer.length: " + timestampBuffer.length);
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
 
+    log("firstPassengerTime: " + firstPassengerTime);
+    log("doorOpenTime: " + doorOpenTime);
+    log("lastTurnaroundTime: " + lastTurnaroundTime);
+
     if (
-      firstPassengerTime - doorOpenTime <= 30000 &&
-      lastTurnaroundTime < 20 * 60
+      firstPassengerTime - doorOpenTime >= 30000 &&
+      lastTurnaroundTime > 20 * 60
     ) {
       planeMateOnTime = "Yes";
     } else if (
@@ -415,6 +421,9 @@ log("timestampBuffer.length: " + timestampBuffer.length);
     } else {
       planeMateOnTime = "N/A";
     }
+
+    log("planeMateOnTime: " + planeMateOnTime);
+
     db.ref(`lastTransaction/planeMateOnTime`).set(planeMateOnTime);
 
     if (doorOpenDuration > 10) {
@@ -601,30 +610,33 @@ async function main() {
 }
 
 // Fetch global variables from Firebase
-db.ref('variables').once('value').then((snapshot) => {
-  const data = snapshot.val();
-  baselineDetectedPulses = data.baselineDetectedPulses;
-  baselineVarianceLimit = data.baselineVariance;
-  boardingStartPersons = data.boardingStartPersons;
-  boardingStartTimeWindow = data.boardingStartTimeWindow;
-  initialDoorOpenDelay = data.initialDoorOpenDelay;
-  personDetectedPulses = data.personDetectedPulses;
-  turnaroundReset = data.turnaroundReset;
-  KPIrecalulation = data.KPIrecalulation;
+db.ref("variables")
+  .once("value")
+  .then((snapshot) => {
+    const data = snapshot.val();
+    baselineDetectedPulses = data.baselineDetectedPulses;
+    baselineVarianceLimit = data.baselineVariance;
+    boardingStartPersons = data.boardingStartPersons;
+    boardingStartTimeWindow = data.boardingStartTimeWindow;
+    initialDoorOpenDelay = data.initialDoorOpenDelay;
+    personDetectedPulses = data.personDetectedPulses;
+    turnaroundReset = data.turnaroundReset;
+    KPIrecalulation = data.KPIrecalulation;
 
-  // Console log the new values
-  console.log("New values fetched from Firebase:");
-  console.log("baselineDetectedPulses:", baselineDetectedPulses);
-  console.log("baselineVarianceLimit:", baselineVarianceLimit);
-  console.log("boardingStartPersons:", boardingStartPersons);
-  console.log("boardingStartTimeWindow:", boardingStartTimeWindow);
-  console.log("initialDoorOpenDelay:", initialDoorOpenDelay);
-  console.log("personDetectedPulses:", personDetectedPulses);
-  console.log("turnaroundReset:", turnaroundReset);
-  console.log("KPIrecalulation:", KPIrecalulation);
+    // Console log the new values
+    console.log("New values fetched from Firebase:");
+    console.log("baselineDetectedPulses:", baselineDetectedPulses);
+    console.log("baselineVarianceLimit:", baselineVarianceLimit);
+    console.log("boardingStartPersons:", boardingStartPersons);
+    console.log("boardingStartTimeWindow:", boardingStartTimeWindow);
+    console.log("initialDoorOpenDelay:", initialDoorOpenDelay);
+    console.log("personDetectedPulses:", personDetectedPulses);
+    console.log("turnaroundReset:", turnaroundReset);
+    console.log("KPIrecalulation:", KPIrecalulation);
 
-  // Call the main function
-  main();
-}).catch((error) => {
-  console.error("Error reading Firebase data: ", error);
-});
+    // Call the main function
+    main();
+  })
+  .catch((error) => {
+    console.error("Error reading Firebase data: ", error);
+  });
