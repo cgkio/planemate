@@ -326,6 +326,7 @@ function pollSensor() {
       "Door " + doorNumber + " | Dock " + dockNumber
     ); // update the location in Firebase for display on the dashboard
     timestampBuffer = []; //reset the buffer
+    timestampBuffer.push(Date.now()); // add the current timestamp to the buffer as the door open time
     db.ref(`doors/Door${doorNumber}`).set(false); // Update the door open/close status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) opened.`); // Update main message in Firebase
     rpio.write(RED_LIGHT, 0);
@@ -367,6 +368,7 @@ function pollSensor() {
     console.log("PlaneMate Door CLOSED"); // door has been detected to be closed
     db.ref("lastTransaction/activePassengerCount").set(peopleCount - 1); // update the active passenger count in Firebase
     doorCycleCount++; // increment the door cycle count
+    timestampBuffer.push(Date.now()); // add the current timestamp to the buffer as the door closed time
     clearInterval(intervalId); // Stop the interval
     db.ref(`doors/Door${doorNumber}`).set(true); // Update the door status in Firebase
     updateMainMsg(`Door ${doorNumber} (Dock ${dockNumber}) closed.`); // Update main message in Firebase
