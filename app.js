@@ -378,23 +378,24 @@ function pollSensor() {
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
-    // const lastPassengerTimestamp = new Date(
-    //   timestampBuffer[timestampBuffer.length - 2]
-    // ).toISOString();
+    
+    const lastPassengerTimestamp = new Date(
+      timestampBuffer[timestampBuffer.length - 1]
+    ).toISOString();
 
     log(timestampBuffer);
     log("timestampBuffer.length: " + timestampBuffer.length);
 
-    if (timestampBuffer.length > 2) {
-      const lastPassengerTimestamp = new Date(
-        timestampBuffer[timestampBuffer.length - 2]
-      ).toISOString();
-    } else if (timestampBuffer.length === 0) {
-      const lastPassengerTimestamp = null;
-    } else {
-      const lastPassengerTimestamp =
-        timestampBuffer[timestampBuffer.length - 1].toISOString();
-    }
+    // if (timestampBuffer.length > 2) {
+    //   const lastPassengerTimestamp = new Date(
+    //     timestampBuffer[timestampBuffer.length - 2]
+    //   ).toISOString();
+    // } else if (timestampBuffer.length === 0) {
+    //   const lastPassengerTimestamp = null;
+    // } else {
+    //   const lastPassengerTimestamp =
+    //     timestampBuffer[timestampBuffer.length - 1].toISOString();
+    // }
 
     log("lastPassengerTimestamp: " + lastPassengerTimestamp);
 
