@@ -58,7 +58,7 @@ let intervalId;
 let timestampBuffer = [];
 let doorCycleCount = 0;
 let planeMateOnTime = false; // Set to false by default
-const lastPassengerTimetamp = null;
+const lastPassengerTimestamp = null;
 
 // Global variables for configuring algorithms
 let baselineDetectedPulses; // Number of consecutive pulses to detect a baseline
@@ -378,7 +378,7 @@ function pollSensor() {
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
-    // const lastPassengerTimetamp = new Date(
+    // const lastPassengerTimestamp = new Date(
     //   timestampBuffer[timestampBuffer.length - 2]
     // ).toISOString();
 
@@ -386,17 +386,17 @@ function pollSensor() {
     log("timestampBuffer.length: " + timestampBuffer.length);
 
     if (timestampBuffer.length > 2) {
-      const lastPassengerTimetamp = new Date(
+      const lastPassengerTimestamp = new Date(
         timestampBuffer[timestampBuffer.length - 2]
       ).toISOString();
     } else if (timestampBuffer.length === 0) {
-      const lastPassengerTimetamp = null;
+      const lastPassengerTimestamp = null;
     } else {
-      const lastPassengerTimetamp =
+      const lastPassengerTimestamp =
         timestampBuffer[timestampBuffer.length - 1].toISOString();
     }
 
-    log("lastPassengerTimetamp: " + lastPassengerTimetamp);
+    log("lastPassengerTimestamp: " + lastPassengerTimestamp);
 
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
@@ -435,7 +435,7 @@ function pollSensor() {
         "Door Open Duration": doorOpenDuration,
         "Passengers Counted": peopleCount - 1,
         "Boarding Start": firstPassengerTimestamp,
-        "Boarding Stop": lastPassengerTimetamp,
+        "Boarding Stop": lastPassengerTimestamp,
         boardingDuration: boardingDuration,
         "PlaneMate On-Time": planeMateOnTime,
       };
@@ -463,7 +463,7 @@ function pollSensor() {
       //   firstPassengerTimestamp
       // );
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(
-        lastPassengerTimetamp
+        lastPassengerTimestamp
       );
       db.ref(`lastTransaction/boardingDuration`).set(
         boardingDuration + " seconds"
