@@ -67,6 +67,7 @@ let boardingStartTimeWindow; // Number of milliseconds to wait before recognizin
 let initialDoorOpenDelay; // Number of milliseconds to wait before turning on the ultrasonic sensor
 let personDetectedPulses; // Number of consecutive pulses to detect a person
 let turnaroundReset; // Number of minutes to wait before resetting PlaneMate operations (for turnaround time calculations)
+let doorCycleTrigger; // Number of door open/close cycles before recaluclating KPIs
 
 // Initialize the GPIO pins
 rpio.init({ gpiomem: false });
@@ -456,8 +457,8 @@ log("timestampBuffer.length: " + timestampBuffer.length);
         boardingDuration + " seconds"
       );
 
-      // Update the KPIs in Firebase every 10 door cycles
-      if (doorCycleCount >= 2) {
+      // Update the KPIs in Firebase every X door cycles
+      if (doorCycleCount >= doorCycleTrigger) {
         doorCycleCount = 0;
         (async () => {
           await storeData(
@@ -609,6 +610,7 @@ db.ref('variables').once('value').then((snapshot) => {
   initialDoorOpenDelay = data.initialDoorOpenDelay;
   personDetectedPulses = data.personDetectedPulses;
   turnaroundReset = data.turnaroundReset;
+  KPIrecalulation = data.KPIrecalulation;
 
   // Console log the new values
   console.log("New values fetched from Firebase:");
@@ -619,6 +621,7 @@ db.ref('variables').once('value').then((snapshot) => {
   console.log("initialDoorOpenDelay:", initialDoorOpenDelay);
   console.log("personDetectedPulses:", personDetectedPulses);
   console.log("turnaroundReset:", turnaroundReset);
+  console.log("KPIrecalulation:", KPIrecalulation);
 
   // Call the main function
   main();
