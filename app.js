@@ -381,9 +381,7 @@ function pollSensor() {
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
     
-    const lastPassengerTimestamp = new Date(
-      timestampBuffer[timestampBuffer.length - 1]
-    ).toISOString();
+    const lastPassengerTimestamp = timestampBuffer[timestampBuffer.length - 2];
 
     log(timestampBuffer);
     log("timestampBuffer.length: " + timestampBuffer.length);
@@ -466,7 +464,7 @@ function pollSensor() {
       //   firstPassengerTimestamp
       // );
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(
-        lastPassengerTimestamp
+        moment(lastPassengerTimestamp).format("LTS")
       );
       db.ref(`lastTransaction/boardingDuration`).set(
         boardingDuration + " seconds"
