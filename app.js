@@ -409,13 +409,13 @@ function pollSensor() {
     log("lastTurnaroundTime: " + lastTurnaroundTime);
 
     if (
-      firstPassengerTime - doorOpenTime >= 30000 &&
-      lastTurnaroundTime > 20 * 60 || lastTurnaroundTime === null
+      firstPassengerTime - doorOpenTime > 30000 &&
+      lastTurnaroundTime > turnaroundReset * 60 || lastTurnaroundTime === null
     ) {
       planeMateOnTime = "Yes";
     } else if (
       firstPassengerTime - doorOpenTime <= 30000 &&
-      lastTurnaroundTime >= 20 * 60 || lastTurnaroundTime === null
+      lastTurnaroundTime >= turnaroundReset * 60 || lastTurnaroundTime === null
     ) {
       planeMateOnTime = "No";
     } else {
