@@ -29,6 +29,7 @@ axios.defaults.headers.post["Content-Type"] = "application/json";
 
 //Firebase setup
 const serviceAccount = require("./firebase.json");
+const { first } = require("lodash");
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(serviceAccount),
   databaseURL: "https://planemate-4aabc-default-rtdb.firebaseio.com/",
@@ -447,6 +448,8 @@ function pollSensor() {
       addAirtableRecord(fields).then(() => {
         log("AirTable record added");
       });
+
+      firstPassengerTime = null;
 
       // Update the latest action stats in Firebase
       db.ref(`lastTransaction/closeTimestamp`).set(
