@@ -415,7 +415,7 @@ function pollSensor() {
       planeMateOnTime = "Yes";
     } else if (
       firstPassengerTime - doorOpenTime <= 30000 &&
-      lastTurnaroundTime >= 20 * 60
+      lastTurnaroundTime >= 20 * 60 || lastTurnaroundTime === null
     ) {
       planeMateOnTime = "No";
     } else {
