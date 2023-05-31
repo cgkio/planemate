@@ -14,6 +14,27 @@ rpio.init({
   gpiomem: true,
 });
 
+// AirTable setup
+const airtableconfig = require("./airtable.json");
+const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
+const AIRTABLE_BASE_ID = airtableconfig.AIRTABLE_BASE_ID;
+const AIRTABLE_TABLE_NAME = "Door Log";
+// Initialize Airtable
+const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
+
+// Axios setup
+axios.defaults.baseURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+axios.defaults.headers.common["Authorization"] = `Bearer ${AIRTABLE_API_KEY}`;
+axios.defaults.headers.post["Content-Type"] = "application/json";
+
+//Firebase setup
+const serviceAccount = require("./firebase.json");
+firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.credential.cert(serviceAccount),
+  databaseURL: "https://planemate-4aabc-default-rtdb.firebaseio.com/",
+});
+const db = firebaseAdmin.database();
+
 // Raspberry Pi 4 pin assignments
 const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
 const RED_LIGHT = 21; // red LED light
@@ -38,36 +59,14 @@ let doorCycleCount = 0;
 let planeMateOnTime = false; // Set to false by default
 const lastPassengerTimetamp = null;
 
-// Default global variables for configuring algorithms
-let baselineDetectedPulses = 3; // Number of consecutive pulses to detect a baseline
-let personDetectedPulses = 3; // Number of consecutive pulses to detect a person
-let initialDoorOpenDelay = 3000; // Number of milliseconds to wait before turning on the ultrasonic sensor
-let boardingStartPersons = 3; // Number of people to detect before recognizing boarding has started
-let boardingStartTimeWindow = 30000; // Number of milliseconds to wait before recognizing boarding has started if boardingStartPersons has been detected
-let turnaroundReset = 20; // Number of minutes to wait before resetting PlaneMate operations (for turnaround time calculations)
-
-let baselineVarianceLimit = 50; // Number of centimeters to allow for variance from the baseline
-
-// AirTable setup
-const airtableconfig = require("./airtable.json");
-const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
-const AIRTABLE_BASE_ID = airtableconfig.AIRTABLE_BASE_ID;
-const AIRTABLE_TABLE_NAME = "Door Log";
-// Initialize Airtable
-const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
-
-// Axios setup
-axios.defaults.baseURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
-axios.defaults.headers.common["Authorization"] = `Bearer ${AIRTABLE_API_KEY}`;
-axios.defaults.headers.post["Content-Type"] = "application/json";
-
-//Firebase setup
-const serviceAccount = require("./firebase.json");
-firebaseAdmin.initializeApp({
-  credential: firebaseAdmin.credential.cert(serviceAccount),
-  databaseURL: "https://planemate-4aabc-default-rtdb.firebaseio.com/",
-});
-const db = firebaseAdmin.database();
+// Global variables for configuring algorithms
+let baselineDetectedPulses; // Number of consecutive pulses to detect a baseline
+let baselineVarianceLimit; // Number of centimeters to allow for variance from the baseline
+let boardingStartPersons; // Number of people to detect before recognizing boarding has started
+let boardingStartTimeWindow; // Number of milliseconds to wait before recognizing boarding has started if boardingStartPersons has been detected
+let initialDoorOpenDelay; // Number of milliseconds to wait before turning on the ultrasonic sensor
+let personDetectedPulses; // Number of consecutive pulses to detect a person
+let turnaroundReset; // Number of minutes to wait before resetting PlaneMate operations (for turnaround time calculations)
 
 // Initialize the GPIO pins
 rpio.init({ gpiomem: false });
@@ -122,8 +121,7 @@ echo.on("alert", (level, tick) => {
           // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
           if (
             timestampBuffer.length >= boardingStartPersons &&
-            timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <=
-              60000
+            timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <= boardingStartTimeWindow
           ) {
             if (!firstPassengerTime) {
               firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
@@ -197,14 +195,6 @@ async function flashAllLights() {
   rpio.write(GREEN_LIGHT, greenLightState);
 }
 
-// Please ensure to call the flashAllLights function with await keyword if you are calling it inside an async function.
-// await flashAllLights();
-
-// If you're calling it from a non-async function, you can use .then:
-// flashAllLights().then(() => {
-//     console.log('Flashing complete');
-// });
-
 // utility function to pause the program for a specified number of milliseconds
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -221,7 +211,7 @@ function switchLightOn(light) {
 }
 
 async function lightsShow() {
-  let endTime = Date.now() + 6000; // 6 seconds from now
+  let endTime = Date.now() + 3000; // 3 seconds from now
 
   while (Date.now() < endTime) {
     switchLightOn(GREEN_LIGHT);
@@ -609,5 +599,29 @@ async function main() {
   pollSensor();
 }
 
-// run the main function
-main();
+// Fetch global variables from Firebase
+db.ref('variables').once('value').then((snapshot) => {
+  const data = snapshot.val();
+  baselineDetectedPulses = data.baselineDetectedPulses;
+  baselineVarianceLimit = data.baselineVariance;
+  boardingStartPersons = data.boardingStartPersons;
+  boardingStartTimeWindow = data.boardingStartTimeWindow;
+  initialDoorOpenDelay = data.initialDoorOpenDelay;
+  personDetectedPulses = data.personDetectedPulses;
+  turnaroundReset = data.turnaroundReset;
+
+  // Console log the new values
+  console.log("New values fetched from Firebase:");
+  console.log("baselineDetectedPulses:", baselineDetectedPulses);
+  console.log("baselineVarianceLimit:", baselineVarianceLimit);
+  console.log("boardingStartPersons:", boardingStartPersons);
+  console.log("boardingStartTimeWindow:", boardingStartTimeWindow);
+  console.log("initialDoorOpenDelay:", initialDoorOpenDelay);
+  console.log("personDetectedPulses:", personDetectedPulses);
+  console.log("turnaroundReset:", turnaroundReset);
+
+  // Call the main function
+  main();
+}).catch((error) => {
+  console.error("Error reading Firebase data: ", error);
+});
