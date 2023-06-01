@@ -61,14 +61,17 @@ let planeMateOnTime = false; // Set to false by default
 const lastPassengerTimestamp = null;
 
 // Global variables for configuring algorithms
-let baselineDetectedPulses; // Number of consecutive pulses to detect a baseline
-let baselineVarianceLimit; // Number of centimeters to allow for variance from the baseline
-let boardingStartPersons; // Number of people to detect before recognizing boarding has started
-let boardingStartTimeWindow; // Number of milliseconds to wait before recognizing boarding has started if boardingStartPersons has been detected
-let initialDoorOpenDelay; // Number of milliseconds to wait before turning on the ultrasonic sensor
-let personDetectedPulses; // Number of consecutive pulses to detect a person
-let turnaroundReset; // Number of minutes to wait before resetting PlaneMate operations (for turnaround time calculations)
-let doorCycleTrigger; // Number of door open/close cycles before recaluclating KPIs
+let baselineDetectedPulses; // The number of ultrasonic baseline pulses needed to reset human detection.
+let baselineVarianceLimit; // The number of millimeters from the baseline used as a blackout zone to not detect passengers.
+let boardingStartPersons; // The number of persons in a flow that must be detected before indicating that boarding has begun.
+let boardingStartTimeWindow; // The length of the boarding flow in milliseconds.
+let initialDoorOpenDelay; // Waiting time in milliseconds before turning on the ultrasonic sensor.
+let personDetectedPulses; // The number of ultrasonic variance pulses necessary to detect a person.
+let turnaroundReset; // Number of minutes to wait before restarting PlaneMate procedures (for calculating turnaround time).
+let doorCycleTrigger; // The number of door open/close cycles performed before recalculating KPIs.
+let falsePositiveDoorOpening; //The number of seconds that must elapse before the door opens is deemed a valid loading operation.
+let lastPassengerSubtraction; // To account for door closure, deduct the number of seconds from the person detection timestamps.
+let onTimeDeterminationLimit; // Number of seconds before passenger boarding on the first PlaneMate will not trigger an on-time warning.
 
 // Initialize the GPIO pins
 rpio.init({ gpiomem: false });
@@ -145,7 +148,7 @@ echo.on("alert", (level, tick) => {
         }
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
         consecutiveBaselines++;
-        if (consecutiveBaselines >= 3) {
+        if (consecutiveBaselines >= baselineDetectedPulses) {
           personDetected = false;
           log("3 baseline measurements detected - Person has passed");
           consecutiveBaselines = 0;
@@ -352,10 +355,10 @@ function pollSensor() {
       intervalId = setInterval(() => {
         trigger.trigger(10, 1); // Set trigger high for 10 microseconds
       }, 250);
-    }, 3000);
+    }, initialDoorOpenDelay);
     if (doorCloseTime !== null) {
       lastTurnaroundTime = (doorOpenTime - doorCloseTime) / 1000;
-      if (lastTurnaroundTime < 20 * 60) {
+      if (lastTurnaroundTime < turnaroundReset * 60) {
         console.log(
           `Turnaround time: ${lastTurnaroundTime.toFixed(2)} seconds.`
         );
@@ -380,12 +383,19 @@ function pollSensor() {
     const doorOpenDuration = (doorCloseTime - doorOpenTime) / 1000;
     const openTimestamp = new Date(doorOpenTime).toISOString();
     const firstPassengerTimestamp = new Date(firstPassengerTime).toISOString();
-    
-    const lastPassengerTimestamp = timestampBuffer[timestampBuffer.length - 2];
+
+    let lastPassengerTimestamp;
+
+    for (let i = timestampBuffer.length - 1; i >= 0; i--) {
+      // Check if the timestamp is more than 2 seconds before now (or whatever the lastPassengerSubtraction is set to)
+      if (Date.now() - timestampBuffer[i] > lastPassengerSubtraction * 1000) {
+        lastPassengerTimestamp = timestampBuffer[i];
+        break;
+      }
+    }
 
     log(timestampBuffer);
     log("timestampBuffer.length: " + timestampBuffer.length);
-
     log("lastPassengerTimestamp: " + lastPassengerTimestamp);
 
     const closeTimestamp = new Date(doorCloseTime).toISOString();
@@ -400,13 +410,15 @@ function pollSensor() {
     log("lastTurnaroundTime: " + lastTurnaroundTime);
 
     if (
-      firstPassengerTime - doorOpenTime > 30000 &&
-      lastTurnaroundTime > turnaroundReset * 60 || lastTurnaroundTime === null
+      (firstPassengerTime - doorOpenTime > onTimeDeterminationLimit * 1000 &&
+        lastTurnaroundTime > turnaroundReset * 60) ||
+      lastTurnaroundTime === null
     ) {
       planeMateOnTime = "Yes";
     } else if (
-      firstPassengerTime - doorOpenTime <= 30000 &&
-      lastTurnaroundTime >= turnaroundReset * 60 || lastTurnaroundTime === null
+      (firstPassengerTime - doorOpenTime <= onTimeDeterminationLimit * 1000 &&
+        lastTurnaroundTime >= turnaroundReset * 60) ||
+      lastTurnaroundTime === null
     ) {
       planeMateOnTime = "No";
     } else {
@@ -417,7 +429,7 @@ function pollSensor() {
 
     db.ref(`lastTransaction/planeMateOnTime`).set(planeMateOnTime);
 
-    if (doorOpenDuration > 10) {
+    if (doorOpenDuration > falsePositiveDoorOpening) {
       // Only process a record if the door was open for more than 10 seconds
       const fields = {
         "Door Open": openTimestamp,
@@ -430,7 +442,10 @@ function pollSensor() {
         "PlaneMate On-Time": planeMateOnTime,
       };
 
-      if (lastTurnaroundTime !== null && lastTurnaroundTime < 20 * 60) {
+      if (
+        lastTurnaroundTime !== null &&
+        lastTurnaroundTime < turnaroundReset * 60
+      ) {
         fields["Turnaround Time"] = lastTurnaroundTime;
         db.ref(`lastTransaction/turnaroundTime`).set(lastTurnaroundTime);
       } else {
@@ -615,6 +630,9 @@ db.ref("variables")
     personDetectedPulses = data.personDetectedPulses;
     turnaroundReset = data.turnaroundReset;
     KPIrecalulation = data.KPIrecalulation;
+    falsePositiveDoorOpening = data.falsePositiveDoorOpening;
+    lastPassengerSubtraction = data.lastPassengerSubtraction;
+    onTimeDeterminationLimit = data.onTimeDeterminationLimit;
 
     // Console log the new values
     console.log("New values fetched from Firebase:");
@@ -626,6 +644,9 @@ db.ref("variables")
     console.log("personDetectedPulses:", personDetectedPulses);
     console.log("turnaroundReset:", turnaroundReset);
     console.log("KPIrecalulation:", KPIrecalulation);
+    console.log("falsePositiveDoorOpening:", falsePositiveDoorOpening);
+    console.log("lastPassengerSubtraction:", lastPassengerSubtraction);
+    console.log("onTimeDeterminationLimit:", onTimeDeterminationLimit);
 
     // Call the main function
     main();
