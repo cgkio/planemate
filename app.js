@@ -433,6 +433,9 @@ function pollSensor() {
       if (lastTurnaroundTime !== null && lastTurnaroundTime < 20 * 60) {
         fields["Turnaround Time"] = lastTurnaroundTime;
         db.ref(`lastTransaction/turnaroundTime`).set(lastTurnaroundTime);
+      } else {
+        // fields["Turnaround Time"] = "N/A";
+        db.ref(`lastTransaction/turnaroundTime`).set("N/A");
       }
 
       addAirtableRecord(fields).then(() => {
