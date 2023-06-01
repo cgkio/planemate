@@ -386,17 +386,6 @@ function pollSensor() {
     log(timestampBuffer);
     log("timestampBuffer.length: " + timestampBuffer.length);
 
-    // if (timestampBuffer.length > 2) {
-    //   const lastPassengerTimestamp = new Date(
-    //     timestampBuffer[timestampBuffer.length - 2]
-    //   ).toISOString();
-    // } else if (timestampBuffer.length === 0) {
-    //   const lastPassengerTimestamp = null;
-    // } else {
-    //   const lastPassengerTimestamp =
-    //     timestampBuffer[timestampBuffer.length - 1].toISOString();
-    // }
-
     log("lastPassengerTimestamp: " + lastPassengerTimestamp);
 
     const closeTimestamp = new Date(doorCloseTime).toISOString();
@@ -460,9 +449,6 @@ function pollSensor() {
         doorOpenDuration + " seconds"
       );
       db.ref(`lastTransaction/peopleCount`).set(peopleCount - 1);
-      // db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-      //   firstPassengerTimestamp
-      // );
       db.ref(`lastTransaction/lastPassengerTimestamp`).set(
         moment(lastPassengerTimestamp).format("LTS")
       );
