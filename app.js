@@ -338,11 +338,11 @@ function pollSensor() {
     doorOpenTime = Date.now();
     db.ref(`lastTransaction/openTimestamp`).set(moment().format("LTS")); // update the door open time in Firebase for display on the dashboard
     db.ref(`lastTransaction/closeTimestamp`).set("_______"); // update for display on the dashboard
-    db.ref(`lastTransaction/boardingDuration`).set("_______"); // update for display on the dashboard
-    db.ref(`lastTransaction/planeMateOnTime`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/boardingDuration`).set(""); // update for display on the dashboard
+    db.ref(`lastTransaction/planeMateOnTime`).set(""); // update for display on the dashboard
     db.ref(`lastTransaction/firstPassengerTimestamp`).set("_______"); // update for display on the dashboard
     db.ref(`lastTransaction/lastPassengerTimestamp`).set("_______"); // update for display on the dashboard
-    db.ref(`lastTransaction/doorOpenDuration`).set("_______"); // update for display on the dashboard
+    db.ref(`lastTransaction/doorOpenDuration`).set(""); // update for display on the dashboard
     db.ref(`lastTransaction/turnaroundTime`).set("_______"); // update for display on the dashboard
     // Start the ultrasonic sensor after a 3-second delay
     setTimeout(() => {
