@@ -123,28 +123,55 @@ echo.on("alert", (level, tick) => {
           db.ref("lastTransaction/activePassengerCount").set(peopleCount); // update the active passenger count in Firebase
           consecutiveDetections = 0; // reset the consecutive detections
 
-          // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
-          if (
-            timestampBuffer.length >= boardingStartPersons &&
-            timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[0] <=
-              boardingStartTimeWindow
-          ) {
-            if (!firstPassengerTime) {
-              firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
-              db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-                moment(firstPassengerTime).format("LTS")
-              ); // update the first passenger timestamp in Firebase for display on the dashboard
-              log("Boarding time started at: " + firstPassengerTime);
-              log(
-                "Boarding time started at: " +
-                  new Date(firstPassengerTime).toISOString()
-              );
-              log(
-                "Boarding time started at: " +
-                  moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
-              );
-            }
+          // // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
+          // if (
+          //   timestampBuffer.length >= boardingStartPersons &&
+          //   timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[1] <=
+          //     boardingStartTimeWindow
+          // ) {
+          //   if (!firstPassengerTime) {
+          //     firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
+          //     db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+          //       moment(firstPassengerTime).format("LTS")
+          //     ); // update the first passenger timestamp in Firebase for display on the dashboard
+          //     log("Boarding time started at: " + firstPassengerTime);
+          //     log(
+          //       "Boarding time started at: " +
+          //         new Date(firstPassengerTime).toISOString()
+          //     );
+          //     log(
+          //       "Boarding time started at: " +
+          //         moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
+          //     );
+          //   }
+          // }
+
+          let startIndex = 1; // we start at index 1 as we don't want to consider the first element
+
+          while (startIndex < timestampBuffer.length - 2) {
+              let endIndex = startIndex + 2; // we're looking at groups of three
+          
+              if (timestampBuffer[endIndex] - timestampBuffer[startIndex] <= boardingStartTimeWindow) {
+                  if (!firstPassengerTime) {
+                      firstPassengerTime = timestampBuffer[startIndex];
+                      db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+                          moment(firstPassengerTime).format("LTS")
+                      );
+                      log("Boarding time started at: " + firstPassengerTime);
+                      log(
+                          "Boarding time started at: " +
+                            new Date(firstPassengerTime).toISOString()
+                      );
+                      log(
+                          "Boarding time started at: " +
+                            moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
+                      );
+                  }
+                  break; // We found the first group of 3 within the time window. We can stop the loop.
+              }
+              startIndex++;
           }
+          
         }
       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
         consecutiveBaselines++;
