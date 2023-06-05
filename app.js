@@ -160,10 +160,6 @@ echo.on("alert", (level, tick) => {
                       log("Boarding time started at: " + firstPassengerTime);
                       log(
                           "Boarding time started at: " +
-                            new Date(firstPassengerTime).toISOString()
-                      );
-                      log(
-                          "Boarding time started at: " +
                             moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
                       );
                   }

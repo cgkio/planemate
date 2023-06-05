@@ -16,9 +16,12 @@ Headless Raspberry Pi running Node.js that autoboots.
 - Remote reboot via PiTunnel
 - Determines/estimtes if the PlaneMate arrived after the flight arrived
 - Script automatically runs on bootup and crashes (PM2)
+- Add a "delay" on people counting when the door closes
+- Dynamic global variables
 
 ### Next Up
-- Add a 3 second "delay" on people counting when the door closes (seperate variable)
+- Add error controls
+- Solve ghost counting
 
 ### Features Pending
 
@@ -140,8 +143,6 @@ sudo usermod -a -G gpio stratops
 
 Reboot your system:
 sudo reboot
-
-
 
 **PM2 Node App Manager**
 
