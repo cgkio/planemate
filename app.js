@@ -110,10 +110,11 @@ echo.on("alert", (level, tick) => {
       if (
         !personDetected &&
         Math.abs(baseline - distance) > baselineVarianceLimit
+        && distance < 700
       ) {
         consecutiveDetections++;
 
-        if (consecutiveDetections >= personDetectedPulses && distance < 700) {
+        if (consecutiveDetections >= personDetectedPulses) {
           log("Person Detected | " + distance + " cm"); // person detected if the distance is more than 30 cm from the baseline
           flashYellowLight();
           personDetected = true;
