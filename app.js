@@ -95,6 +95,93 @@ let consecutiveDetections = 0;
 // Add a new variable to track consecutive baselines
 let consecutiveBaselines = 0;
 
+// echo.on("alert", (level, tick) => {
+//   if (level == 1) {
+//     startTick = tick;
+//   } else {
+//     const endTick = tick;
+//     const diff = (endTick >> 0) - (startTick >> 0); // Unsigned 32 bit arithmetic
+//     let distance = diff / 2 / (1e6 / 34321); // 1e6 / 34321 is the number of microseconds it takes sound to travel 1cm at 20 degrees celcius
+
+//     if (baseline === undefined) {
+//       baseline = distance; // Set the first reading as baseline
+//       log("baseline distance: " + baseline + " cm");
+//     } else {
+//       if (
+//         !personDetected &&
+//         Math.abs(baseline - distance) > baselineVarianceLimit
+//         && distance < 400 // HC-SR04 sensor has a maximum range of 400 cm
+//       ) {
+//         consecutiveDetections++;
+
+//         if (consecutiveDetections >= personDetectedPulses) {
+//           log("Person Detected | " + distance + " cm"); // person detected if the distance is more than 30 cm from the baseline
+//           flashYellowLight();
+//           personDetected = true;
+//           peopleCount++; // Increase the counter when a person is detected
+//           log("Total People Detected: " + peopleCount);
+//           timestampBuffer.push(Date.now()); // buffer used to identify the timestamp for the first passenger in the flow
+//           db.ref("lastTransaction/activePassengerCount").set(peopleCount); // update the active passenger count in Firebase
+//           consecutiveDetections = 0; // reset the consecutive detections
+
+//           // // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
+//           // if (
+//           //   timestampBuffer.length >= boardingStartPersons &&
+//           //   timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[1] <=
+//           //     boardingStartTimeWindow
+//           // ) {
+//           //   if (!firstPassengerTime) {
+//           //     firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
+//           //     db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+//           //       moment(firstPassengerTime).format("LTS")
+//           //     ); // update the first passenger timestamp in Firebase for display on the dashboard
+//           //     log("Boarding time started at: " + firstPassengerTime);
+//           //     log(
+//           //       "Boarding time started at: " +
+//           //         new Date(firstPassengerTime).toISOString()
+//           //     );
+//           //     log(
+//           //       "Boarding time started at: " +
+//           //         moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
+//           //     );
+//           //   }
+//           // }
+
+//           let startIndex = 1; // we start at index 1 as we don't want to consider the first element
+
+//           while (startIndex < timestampBuffer.length - 2) {
+//               let endIndex = startIndex + 2; // we're looking at groups of three
+          
+//               if (timestampBuffer[endIndex] - timestampBuffer[startIndex] <= boardingStartTimeWindow) {
+//                   if (!firstPassengerTime) {
+//                       firstPassengerTime = timestampBuffer[startIndex];
+//                       db.ref(`lastTransaction/firstPassengerTimestamp`).set(
+//                           moment(firstPassengerTime).format("LTS")
+//                       );
+//                       log("Boarding time started at: " + firstPassengerTime);
+//                       log(
+//                           "Boarding time started at: " +
+//                             moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
+//                       );
+//                   }
+//                   break; // We found the first group of 3 within the time window. We can stop the loop.
+//               }
+//               startIndex++;
+//           }
+          
+//         }
+//       } else if (personDetected && Math.abs(distance - baseline) <= 30) {
+//         consecutiveBaselines++;
+//         if (consecutiveBaselines >= baselineDetectedPulses) {
+//           personDetected = false;
+//           log(personDetectedPulses + " baseline measurements detected - Person has passed");
+//           consecutiveBaselines = 0;
+//         }
+//       }
+//     }
+//   }
+// });
+
 echo.on("alert", (level, tick) => {
   if (level == 1) {
     startTick = tick;
@@ -103,14 +190,24 @@ echo.on("alert", (level, tick) => {
     const diff = (endTick >> 0) - (startTick >> 0); // Unsigned 32 bit arithmetic
     let distance = diff / 2 / (1e6 / 34321); // 1e6 / 34321 is the number of microseconds it takes sound to travel 1cm at 20 degrees celcius
 
+    // Add reading to the queue
+    readingsQueue.push(distance);
+    // If we have more readings than needed, remove the oldest one
+    if(readingsQueue.length > readingsQueueLength){
+        readingsQueue.shift();
+    }
+    // Calculate the average of the last readingsQueueLength readings
+    let averageDistance = readingsQueue.reduce((a, b) => a + b, 0) / readingsQueue.length;
+
+    // Then replace all 'distance' in your code with 'averageDistance'
     if (baseline === undefined) {
-      baseline = distance; // Set the first reading as baseline
+      baseline = averageDistance; // Set the first reading as baseline
       log("baseline distance: " + baseline + " cm");
     } else {
       if (
         !personDetected &&
-        Math.abs(baseline - distance) > baselineVarianceLimit
-        && distance < 500
+        Math.abs(baseline - averageDistance) > baselineVarianceLimit
+        && distance < 400 // HC-SR04 sensor has a maximum range of 400 cm
       ) {
         consecutiveDetections++;
 
@@ -123,29 +220,6 @@ echo.on("alert", (level, tick) => {
           timestampBuffer.push(Date.now()); // buffer used to identify the timestamp for the first passenger in the flow
           db.ref("lastTransaction/activePassengerCount").set(peopleCount); // update the active passenger count in Firebase
           consecutiveDetections = 0; // reset the consecutive detections
-
-          // // Check if there have been three people detected within 60 seconds to confirm passengers have started boarding
-          // if (
-          //   timestampBuffer.length >= boardingStartPersons &&
-          //   timestampBuffer[timestampBuffer.length - 1] - timestampBuffer[1] <=
-          //     boardingStartTimeWindow
-          // ) {
-          //   if (!firstPassengerTime) {
-          //     firstPassengerTime = timestampBuffer[0]; //set the boarding started timestamp to the first person in the flow
-          //     db.ref(`lastTransaction/firstPassengerTimestamp`).set(
-          //       moment(firstPassengerTime).format("LTS")
-          //     ); // update the first passenger timestamp in Firebase for display on the dashboard
-          //     log("Boarding time started at: " + firstPassengerTime);
-          //     log(
-          //       "Boarding time started at: " +
-          //         new Date(firstPassengerTime).toISOString()
-          //     );
-          //     log(
-          //       "Boarding time started at: " +
-          //         moment(firstPassengerTime).format("YYYY-MM-DD HH:mm:ss")
-          //     );
-          //   }
-          // }
 
           let startIndex = 1; // we start at index 1 as we don't want to consider the first element
 
