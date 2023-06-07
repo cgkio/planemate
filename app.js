@@ -502,7 +502,7 @@ function pollSensor() {
 
     const closeTimestamp = new Date(doorCloseTime).toISOString();
     const boardingDuration =
-      (timestampBuffer[timestampBuffer.length - 2] - firstPassengerTime) / 1000;
+      (lastPassengerTimestamp - firstPassengerTime) / 1000;
 
     log("boardingDuration: " + boardingDuration);
     log("Total People Detected: " + peopleCount);
