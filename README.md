@@ -18,10 +18,10 @@ Headless Raspberry Pi running Node.js that autoboots.
 - Script automatically runs on bootup and crashes (PM2)
 - Add a "delay" on people counting when the door closes
 - Dynamic global variables
+- Solved ghost counting
 
 ### Next Up
 - Add error controls
-- Solve ghost counting
 
 ### Features Pending
 
