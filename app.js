@@ -97,7 +97,7 @@ let consecutiveBaselines = 0;
 
 // Add a variable for the reading queue and its length
 let readingsQueue = [];
-const readingsQueueLength = 10;
+const readingsQueueLength = 6;
 
 // echo.on("alert", (level, tick) => {
 //   if (level == 1) {
