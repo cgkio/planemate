@@ -110,7 +110,7 @@ echo.on("alert", (level, tick) => {
       if (
         !personDetected &&
         Math.abs(baseline - distance) > baselineVarianceLimit
-        && distance < 700
+        && distance < 500
       ) {
         consecutiveDetections++;
 
