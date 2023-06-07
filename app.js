@@ -274,7 +274,7 @@ function flashYellowLight() {
   rpio.write(YELLOW_LIGHT, 1); // Turn on the yellow light
   setTimeout(() => {
     rpio.write(YELLOW_LIGHT, 0); // Turn off the yellow light after 1/2 second
-  }, 100); //number of miliseconds between pulses
+  }, 50); //number of miliseconds between pulses
 }
 
 // This function flashes all the lights and restores the original state
