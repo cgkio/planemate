@@ -173,7 +173,7 @@ echo.on("alert", (level, tick) => {
         consecutiveBaselines++;
         if (consecutiveBaselines >= baselineDetectedPulses) {
           personDetected = false;
-          log("3 baseline measurements detected - Person has passed");
+          log(personDetectedPulses + " baseline measurements detected - Person has passed");
           consecutiveBaselines = 0;
         }
       }
