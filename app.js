@@ -95,6 +95,10 @@ let consecutiveDetections = 0;
 // Add a new variable to track consecutive baselines
 let consecutiveBaselines = 0;
 
+// Add a variable for the reading queue and its length
+let readingsQueue = [];
+const readingsQueueLength = 10;
+
 // echo.on("alert", (level, tick) => {
 //   if (level == 1) {
 //     startTick = tick;
