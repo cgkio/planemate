@@ -123,7 +123,7 @@ function handleInterrupt(sensor, sensorName, previousState) {
 
     debounceTimeout = setTimeout(function () {
       if (level !== previousState) {
-        console.log(`${sensorName} - ${level === 0 ? "Open" : "Closed"}`);
+        console.log(`Door ${sensorName} - ${level === 0 ? "Open" : "Closed"}`);
         previousState = level;
       }
     }, 100); // 100 ms debounce period
