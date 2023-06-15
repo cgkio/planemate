@@ -7,6 +7,7 @@ const Gpio = require("pigpio").Gpio;
 const Airtable = require("airtable");
 
 let doLogStuff = true;
+let isOpen = null;
 let oldIsOpen = null;
 
 rpio.init({
