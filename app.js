@@ -133,13 +133,13 @@ function pollSensor() {
   } else if (isOpen !== oldIsOpen) {
     log("Door One - CLOSED"); // door has been detected to be closed
     timestampBuffer.push(Date.now()); // add the current timestamp to the buffer as the door closed time
-    const openTimestamp = new Date(timestampBuffer[0]).toISOString();
-    const closeTimestamp = new Date(timestampBuffer[1]).toISOString();
-    const boardingDuration = (lastPassengerTimestamp - firstPassengerTime) / 1000;
-    log(timestampBuffer)
-    log(openTimestamp);
-    log(closeTimestamp);
-    log(boardingDuration);
+    // const openTimestamp = new Date(timestampBuffer[0]).toISOString();
+    // const closeTimestamp = new Date(timestampBuffer[1]).toISOString();
+    // const boardingDuration = (lastPassengerTimestamp - firstPassengerTime) / 1000;
+    // log(timestampBuffer)
+    // log(openTimestamp);
+    // log(closeTimestamp);
+    // log(boardingDuration);
   }
   setTimeout(pollSensor, 1000);
 }
