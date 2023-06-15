@@ -87,7 +87,7 @@ async function getDoorAssignment() {
 
     base(AIRTABLE_TABLE_NAME)
       .select({
-        filterByFormula: `AND({MAC Address} = '${mac}')`,
+        .filterByFormula(`AND({'MAC Address'} = '${mac}')`,
         maxRecords: 1,
       })
       .firstPage((error, records) => {
