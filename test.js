@@ -1,32 +1,51 @@
 var Gpio = require('pigpio').Gpio;
 
 // Define the GPIO pin that you've connected to the sensor
-var sensorPinNo = 18; // change this to the pin you are using
+var sensorPinNo1 = 18;
+var sensorPinNo2 = 24;
+var sensorPinNo3 = 1;
+var sensorPinNo4 = 12;
 
-// Create a new Gpio object for the sensor
-var sensor = new Gpio(sensorPinNo, {
+// Create new Gpio objects for the sensors
+var sensor1 = new Gpio(sensorPinNo1, {
   mode: Gpio.INPUT,
-  pullUpDown: Gpio.PUD_UP, // Set the internal pull-up resistor
-  edge: Gpio.EITHER_EDGE // Detect both rising and falling edges
+  pullUpDown: Gpio.PUD_UP,
+  edge: Gpio.EITHER_EDGE
 });
 
-// Variable to hold the previous state
-var previousState = sensor.digitalRead();
+var sensor2 = new Gpio(sensorPinNo2, {
+  mode: Gpio.INPUT,
+  pullUpDown: Gpio.PUD_UP,
+  edge: Gpio.EITHER_EDGE
+});
 
-// Report the initial state
-console.log(previousState === 0 ? "Door is open" : "Door is closed");
+var sensor3 = new Gpio(sensorPinNo3, {
+  mode: Gpio.INPUT,
+  pullUpDown: Gpio.PUD_UP,
+  edge: Gpio.EITHER_EDGE
+});
 
-// Detect door open or close based on the GPIO pin state
-sensor.on('interrupt', function(level) {
-  if (level !== previousState) { // Only report changes
-    if (level === 0) { // Falling edge means door open for NC sensor
-      console.log("Door is open");
-    } else { // Rising edge means door closed for NC sensor
-      console.log("Door is closed");
+var sensor4 = new Gpio(sensorPinNo4, {
+  mode: Gpio.INPUT,
+  pullUpDown: Gpio.PUD_UP,
+  edge: Gpio.EITHER_EDGE
+});
+
+// Create a function that can be used for all sensors
+function handleInterrupt(sensor, previousState) {
+  sensor.on('interrupt', function (level) {
+    if (level !== previousState) {
+      console.log(`Sensor on pin ${sensor.gpio} changed: ${level === 0 ? 'Door is open' : 'Door is closed'}`);
+      previousState = level;
     }
-    previousState = level; // Store the new state
-  }
-});
+  });
+}
+
+// Handle interrupts for all sensors
+handleInterrupt(sensor1, sensor1.digitalRead());
+handleInterrupt(sensor2, sensor2.digitalRead());
+handleInterrupt(sensor3, sensor3.digitalRead());
+handleInterrupt(sensor4, sensor4.digitalRead());
 
 // Keep the script running
 setInterval(function(){}, 1000);
