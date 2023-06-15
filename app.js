@@ -130,7 +130,7 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
         } else {
           // Door closed
-          db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
+          db.ref(`doors/Door${sensorName}`).set(true); // Update the door status in Firebase as open
           if (sensorBuffer.length === 1) {
             // Only calculate duration if an open timestamp exists
             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
