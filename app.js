@@ -85,9 +85,9 @@ async function getDoorAssignment() {
     const mac = await macaddress.one("wlan0");
     console.log(`MAC address: ${mac}`);
 
-    base('Door Assignments')
+    base("Door Assignments")
       .select({
-        filterByFormula(`AND({MAC Address} = '${mac}')`,
+        filterByFormula: `AND({MAC Address} = '${mac}')`,
         maxRecords: 1,
       })
       .firstPage((error, records) => {
@@ -131,7 +131,6 @@ function handleInterrupt(sensor, sensorName, previousState) {
 
 // primary function that runs when the program starts
 async function main() {
-  
   await getDoorAssignment();
 
   handleInterrupt(sensor1, sensor1Name, sensor1.digitalRead());
@@ -155,7 +154,6 @@ async function main() {
   );
 
   setInterval(function () {}, 1000);
-
 }
 
 main();
