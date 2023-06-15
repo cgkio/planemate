@@ -34,6 +34,7 @@ Headless Raspberry Pi running Node.js that autoboots.
 **To SSH:**
 ```
 ssh stratops@stratopspi.local
+(or ssh stratops@stratopspi2/3/4/5.local)
  
 username: stratops
 password: M******7!
@@ -179,3 +180,88 @@ pm2 kill
 or
 pm2 stop all (keeps PM2 running)
 ```
+
+**Setting up a new Raspberry Pi**
+
+1. Use Raspberry Pi Imager to install Raspberry Pi OS Lite on SD card
+- enable SSH access
+- use stratopspi7.local nomenclature
+- Set username: s******* (Password: M********)
+- Wireless LAN country: US
+- Set locale settings
+
+2. Remote into Pi
+```
+ssh stratops@stratopspi2.local
+```
+
+3. Update & Upgrade
+```
+sudo apt-get update
+sudo apt-get upgrade
+```
+
+3. Update wpa_supplicant.conf (see private repo for text)
+```
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+sudo systemctl restart wpa_supplicant
+```
+
+4. Install NodeJS
+```
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v
+npm -v
+sudo apt install build-essential
+```
+
+(or for Raspberry Pi Zero:
+```
+NVM_NODEJS_ORG_MIRROR=https://unofficial-builds.nodejs.org/download/release nvm install 16
+```
+)
+
+5. Install GitHub CLI
+```
+type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& sudo apt update \
+&& sudo apt install gh -y
+```
+
+6. Clone repo
+```
+gh auth login
+--> Select: HTTPS
+gh repo clone cgkio/planemate
+cd planemate
+sudo npm install
+```
+
+7. Install pigpio
+```
+sudo npm uninstall pigpio
+sudo apt-get install pigpio
+sudo npm install pigpio
+```
+
+Remaining Items:
+- Add Pi Tunnel
+- Add autoboot
+
+
+**GIPO Pin Setup**
+
+Contact sensor: GPIO 18 pin (physical/board pin 12)
+Contact sensor ground: physical/board pin 14
+Red light: GPIO 10 pin (physical/board pin 19)
+Yellow light: GPIO 9 pin (physical/board pin 21)
+Green light: GPIO 11 pin (physical/board pin 23)
+Light sensor ground: physical/board pin 25
+HC-SR04 trigger: GPIO 23 pin (physical/board pin 16)
+HC-SR04 echo: GPIO 24 pin (physical/board pin 18)
+HC-SR04 vcc: physical/board pin 2
+HC-SR04 ground: physical/board pin 39
