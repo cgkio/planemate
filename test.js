@@ -1,7 +1,7 @@
 var Gpio = require('pigpio').Gpio;
 
 // Define the GPIO pin that you've connected to the NO point on the sensor
-var sensorPinNo = 18; // change this to the pin you are using
+var sensorPinNo = 12; // change this to the pin you are using
 
 // Create a new Gpio object for the sensor
 var sensor = new Gpio(sensorPinNo, {
