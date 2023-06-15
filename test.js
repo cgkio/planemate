@@ -29,4 +29,4 @@ sensor.on('interrupt', function(level) {
 });
 
 // Keep the script running
-setInterval(function(){}, 10000);
+setInterval(function(){}, 500);
