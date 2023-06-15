@@ -9,6 +9,7 @@ const Airtable = require("airtable");
 let doLogStuff = true;
 let isOpen = null;
 let oldIsOpen = null;
+let timestampBuffer = [];
 
 rpio.init({
   gpiomem: true,
