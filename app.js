@@ -35,7 +35,7 @@ firebaseAdmin.initializeApp({
 const db = firebaseAdmin.database();
 
 // Raspberry Pi 4 pin assignments
-const DOOR_SENSOR_PIN = 18; // magnetic contact switch (door sensor)
+const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
 // const DOOR_2_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
 // const DOOR_3_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
 // const DOOR_4_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
@@ -62,8 +62,8 @@ let onTimeDeterminationLimit; // Number of seconds before passenger boarding on 
 
 // Initialize the GPIO pins
 rpio.init({ gpiomem: false });
-// rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_UP);
-rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_DOWN);
+rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_UP);
+// rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_DOWN);
 
 // functions to handle debugging logs
 function log(message) {
