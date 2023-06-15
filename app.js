@@ -35,10 +35,10 @@ firebaseAdmin.initializeApp({
 const db = firebaseAdmin.database();
 
 // Raspberry Pi 4 pin assignments
-const DOOR_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
-const DOOR_2_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
-const DOOR_3_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
-const DOOR_4_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
+const DOOR_SENSOR_PIN = 18; // magnetic contact switch (door sensor)
+// const DOOR_2_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
+// const DOOR_3_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
+// const DOOR_4_SENSOR_PIN = 12; // magnetic contact switch (door sensor)
 
 // Global variables
 let doLogStuff = true;
