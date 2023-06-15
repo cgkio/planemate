@@ -140,7 +140,7 @@ function pollSensor() {
     log(closeTimestamp);
     log(boardingDuration);
   }
-  setTimeout(pollSensor, 100);
+  setTimeout(pollSensor, 1000);
 }
 
 // function to update the main broadcast message in Firebase
