@@ -96,12 +96,12 @@ async function getDoorAssignment() {
           process.exit(1);
         }
         if (records.length > 0) {
-          console.log(records);
           dockNumber = records[0].get("Dock Number");
           sensor1Name = records[0].get("Door One");
           sensor2Name = records[0].get("Door Two");
           sensor3Name = records[0].get("Door Three");
           sensor4Name = records[0].get("Door Four");
+          log("Monitoring " + sensor1Name + " and " + sensor2Name + " and " + sensor3Name + " and " + sensor4Name + " on Dock " + dockNumber);
         } else {
           console.error("No door assignment found for this MAC address.");
           process.exit(1);
