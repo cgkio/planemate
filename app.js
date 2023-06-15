@@ -62,7 +62,8 @@ let onTimeDeterminationLimit; // Number of seconds before passenger boarding on 
 
 // Initialize the GPIO pins
 rpio.init({ gpiomem: false });
-rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_UP);
+// rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_UP);
+rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_DOWN);
 
 // functions to handle debugging logs
 function log(message) {
@@ -126,7 +127,7 @@ function pollSensor() {
   oldIsOpen = isOpen;
   isOpen = rpio.read(DOOR_SENSOR_PIN);
   console.log(isOpen);
-  if (isOpen && isOpen !== oldIsOpen) {
+  if (!isOpen && isOpen !== oldIsOpen) {
     log("Door One - OPEN"); // door has been detected to be open
     timestampBuffer.push(Date.now()); // add first timestamp to the buffer for when the door opened
   } else if (isOpen !== oldIsOpen) {
