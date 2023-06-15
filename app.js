@@ -7,8 +7,6 @@ const moment = require("moment");
 const Gpio = require("pigpio").Gpio;
 const Airtable = require("airtable");
 
-// const { first } = require("lodash");
-
 // AirTable setup
 const airtableconfig = require("./airtable.json");
 const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
