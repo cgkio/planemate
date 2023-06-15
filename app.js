@@ -85,7 +85,7 @@ async function getDoorAssignment() {
     const mac = await macaddress.one("wlan0");
     console.log(`MAC address: ${mac}`);
 
-    base(AIRTABLE_TABLE_NAME)
+    base('Door Assignments')
       .select({
         .filterByFormula(`AND({'MAC Address'} = '${mac}')`,
         maxRecords: 1,
