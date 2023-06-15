@@ -26,3 +26,6 @@ sensor.on('interrupt', function(level) {
     previousState = level; // Store the new state
   }
 });
+
+// Keep the script running
+setInterval(function(){}, 500);
