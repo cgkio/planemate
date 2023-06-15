@@ -6,6 +6,11 @@ var sensorPinNo2 = 24;
 var sensorPinNo3 = 1;
 var sensorPinNo4 = 12;
 
+var sensor1Name = "Door One";
+var sensor2Name = "Door Two";
+var sensor3Name = "Door Three";
+var sensor4Name = "Door Four";
+
 // Create new Gpio objects for the sensors
 var sensor1 = new Gpio(sensorPinNo1, {
   mode: Gpio.INPUT,
@@ -32,7 +37,7 @@ var sensor4 = new Gpio(sensorPinNo4, {
 });
 
 // Create a function that can be used for all sensors
-function handleInterrupt(sensor, previousState) {
+function handleInterrupt(sensor, sensorName, previousState) {
   var debounceTimeout = null;
 
   sensor.on('interrupt', function (level) {
@@ -40,7 +45,7 @@ function handleInterrupt(sensor, previousState) {
 
     debounceTimeout = setTimeout(function() {
       if (level !== previousState) {
-        console.log(`Sensor on pin ${sensor.gpio} changed: ${level === 0 ? 'Door is open' : 'Door is closed'}`);
+        console.log(`${sensorName} - ${level === 0 ? 'Open' : 'Closed'}`);
         previousState = level;
       }
     }, 100); // 100 ms debounce period
@@ -48,10 +53,10 @@ function handleInterrupt(sensor, previousState) {
 }
 
 // Handle interrupts for all sensors
-handleInterrupt(sensor1, sensor1.digitalRead());
-handleInterrupt(sensor2, sensor2.digitalRead());
-handleInterrupt(sensor3, sensor3.digitalRead());
-handleInterrupt(sensor4, sensor4.digitalRead());
+handleInterrupt(sensor1, sensor1Name, sensor1.digitalRead());
+handleInterrupt(sensor2, sensor2Name, sensor2.digitalRead());
+handleInterrupt(sensor3, sensor3Name, sensor3.digitalRead());
+handleInterrupt(sensor4, sensor4Name, sensor4.digitalRead());
 
 // Keep the script running
 setInterval(function(){}, 1000);
