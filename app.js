@@ -125,6 +125,7 @@ async function addAirtableRecord(fields) {
 function pollSensor() {
   oldIsOpen = isOpen;
   isOpen = rpio.read(DOOR_SENSOR_PIN);
+  console.log(isOpen);
   if (isOpen && isOpen !== oldIsOpen) {
     log("Door One - OPEN"); // door has been detected to be open
     timestampBuffer.push(Date.now()); // add first timestamp to the buffer for when the door opened
