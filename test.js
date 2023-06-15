@@ -1,10 +1,10 @@
 var Gpio = require('pigpio').Gpio;
 
 // Define the GPIO pin that you've connected to the sensor
-var sensorPinNo1 = 18; // change this to the pin you are using
-var sensorPinNo2 = 23; // change this to the pin you are using
-var sensorPinNo3 = 24; // change this to the pin you are using
-var sensorPinNo4 = 25; // change this to the pin you are using
+var sensorPinNo1 = 18;
+var sensorPinNo2 = 24;
+var sensorPinNo3 = 1;
+var sensorPinNo4 = 12;
 
 // Create new Gpio objects for the sensors
 var sensor1 = new Gpio(sensorPinNo1, {
