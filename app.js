@@ -64,8 +64,6 @@ let onTimeDeterminationLimit; // Number of seconds before passenger boarding on 
 rpio.init({ gpiomem: false });
 rpio.open(DOOR_SENSOR_PIN, rpio.INPUT, rpio.PULL_UP);
 
-trigger.digitalWrite(0); // Make sure trigger is low
-
 // functions to handle debugging logs
 function log(message) {
   if (doLogStuff === true) {
