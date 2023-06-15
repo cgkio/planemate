@@ -54,9 +54,16 @@ function handleInterrupt(sensor, sensorName, previousState) {
 
 // Handle interrupts for all sensors
 handleInterrupt(sensor1, sensor1Name, sensor1.digitalRead());
+console.log(`${sensor1Name} - ${sensor1.digitalRead() === 0 ? 'Open' : 'Closed'}`);
+
 handleInterrupt(sensor2, sensor2Name, sensor2.digitalRead());
+console.log(`${sensor2Name} - ${sensor2.digitalRead() === 0 ? 'Open' : 'Closed'}`);
+
 handleInterrupt(sensor3, sensor3Name, sensor3.digitalRead());
+console.log(`${sensor3Name} - ${sensor3.digitalRead() === 0 ? 'Open' : 'Closed'}`);
+
 handleInterrupt(sensor4, sensor4Name, sensor4.digitalRead());
+console.log(`${sensor4Name} - ${sensor4.digitalRead() === 0 ? 'Open' : 'Closed'}`);
 
 // Keep the script running
 setInterval(function(){}, 1000);
