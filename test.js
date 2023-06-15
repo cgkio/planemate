@@ -6,7 +6,8 @@ var sensorPinNo = 18; // change this to the pin you are using
 // Create a new Gpio object for the sensor
 var sensor = new Gpio(sensorPinNo, {
   mode: Gpio.INPUT,
-  pullUpDown: Gpio.PUD_UP // Set the internal pull-up resistor
+  pullUpDown: Gpio.PUD_UP, // Set the internal pull-up resistor
+  edge: Gpio.EITHER_EDGE // Detect both rising and falling edges
 });
 
 // Variable to hold the previous state
@@ -28,4 +29,4 @@ sensor.on('interrupt', function(level) {
 });
 
 // Keep the script running
-setInterval(function(){}, 500);
+setInterval(function(){}, 10000);
