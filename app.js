@@ -7,7 +7,7 @@ const moment = require("moment");
 const Gpio = require("pigpio").Gpio;
 const Airtable = require("airtable");
 
-const { first } = require("lodash");
+// const { first } = require("lodash");
 
 // AirTable setup
 const airtableconfig = require("./airtable.json");
@@ -32,14 +32,7 @@ var sensorPinNo4 = 12;
 
 // Global variables
 let doLogStuff = true;
-let isOpen = null;
-let oldIsOpen = null;
-let doorOpenTime = null;
 let dockNumber = null;
-let doorNumber = null;
-let doorCloseTime = null;
-let lastTurnaroundTime = null;
-let planeMateOnTime = false; // Set to false by default
 
 // Global variables for configuring algorithms
 var sensor1Name = null;
@@ -134,8 +127,10 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           // Door opened
           sensorBuffer.length = 0; // Reset the buffer
           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
+          db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
         } else {
           // Door closed
+          db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
           if (sensorBuffer.length === 1) {
             // Only calculate duration if an open timestamp exists
             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
