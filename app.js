@@ -7,6 +7,8 @@ const moment = require("moment");
 const Gpio = require("pigpio").Gpio;
 const Airtable = require("airtable");
 
+const { first } = require("lodash");
+
 // AirTable setup
 const airtableconfig = require("./airtable.json");
 const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
@@ -16,7 +18,6 @@ const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
 //Firebase setup
 const serviceAccount = require("./firebase.json");
-const { first } = require("lodash");
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(serviceAccount),
   databaseURL: "https://planemate-4aabc-default-rtdb.firebaseio.com/",
@@ -38,7 +39,6 @@ let dockNumber = null;
 let doorNumber = null;
 let doorCloseTime = null;
 let lastTurnaroundTime = null;
-let timestampBuffer = [];
 let planeMateOnTime = false; // Set to false by default
 
 // Global variables for configuring algorithms
@@ -46,6 +46,10 @@ var sensor1Name = null;
 var sensor2Name = null;
 var sensor3Name = null;
 var sensor4Name = null;
+var sensor1Buffer = [];
+var sensor2Buffer = [];
+var sensor3Buffer = [];
+var sensor4Buffer = [];
 
 // Create new Gpio objects for the contact sensors
 var sensor1 = new Gpio(sensorPinNo1, {
@@ -115,7 +119,7 @@ async function getDoorAssignment() {
 }
 
 // Create a function that is used to monitor all contact sensors
-function handleInterrupt(sensor, sensorName, previousState) {
+function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
   var debounceTimeout = null;
 
   sensor.on("interrupt", function (level) {
@@ -125,6 +129,20 @@ function handleInterrupt(sensor, sensorName, previousState) {
       if (level !== previousState) {
         console.log(`Door ${sensorName} - ${level === 0 ? "Open" : "Closed"}`);
         previousState = level;
+
+        if (level === 0) {
+          // Door opened
+          sensorBuffer.length = 0; // Reset the buffer
+          sensorBuffer.push(moment().valueOf()); // Add door open timestamp
+        } else {
+          // Door closed
+          if (sensorBuffer.length === 1) {
+            // Only calculate duration if an open timestamp exists
+            const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
+            console.log(`Door ${sensorName} was open for ${doorOpenTime / 1000} seconds.`);
+            sensorBuffer.push(moment().valueOf()); // Add door close timestamp
+          }
+        }
       }
     }, 100); // 100 ms debounce period
   });
@@ -134,28 +152,27 @@ function handleInterrupt(sensor, sensorName, previousState) {
 async function main() {
   await getDoorAssignment();
 
-  handleInterrupt(sensor1, sensor1Name, sensor1.digitalRead());
+  handleInterrupt(sensor1, sensor1Name, sensor1.digitalRead(), sensor1Buffer);
   console.log(
     `Door ${sensor1Name} - ${sensor1.digitalRead() === 0 ? "Open" : "Closed"}`
   );
 
-  handleInterrupt(sensor2, sensor2Name, sensor2.digitalRead());
+  handleInterrupt(sensor2, sensor2Name, sensor2.digitalRead(), sensor2Buffer);
   console.log(
     `Door ${sensor2Name} - ${sensor2.digitalRead() === 0 ? "Open" : "Closed"}`
   );
 
-  handleInterrupt(sensor3, sensor3Name, sensor3.digitalRead());
+  handleInterrupt(sensor3, sensor3Name, sensor3.digitalRead(), sensor3Buffer);
   console.log(
     `Door ${sensor3Name} - ${sensor3.digitalRead() === 0 ? "Open" : "Closed"}`
   );
 
-  handleInterrupt(sensor4, sensor4Name, sensor4.digitalRead());
+  handleInterrupt(sensor4, sensor4Name, sensor4.digitalRead(), sensor4Buffer);
   console.log(
     `Door ${sensor4Name} - ${sensor4.digitalRead() === 0 ? "Open" : "Closed"}`
   );
 
   setInterval(function () {}, 1000);
 }
-
 
 main();
