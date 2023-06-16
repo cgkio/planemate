@@ -17,14 +17,14 @@
   },
   "homepage": "https://github.com/cgkio/planemate#readme",
   "dependencies": {
+    "airtable": "~0.12.1",
+    "firebase-admin": "^11.9.0",
     "i": "^0.3.7",
     "lodash": "^4.17.21",
-    "npm": "^9.6.4",
-    "rpio": "^2.4.2",
     "macaddress": "^0.5.3",
-    "firebase-admin": "^11.6.0",
     "moment": "~2.29.4",
+    "npm": "^9.6.4",
     "pigpio": "~3.3.1",
-    "airtable": "~0.12.1"
+    "rpio": "^2.4.2"
   }
 }
