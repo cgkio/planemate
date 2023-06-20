@@ -143,12 +143,12 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
             if (doorOpenTime >= falsePositiveDoorOpening * 60 * 1000) {
               // Valid door event, do something here
               console.log(`Valid door event: ${sensorName}`);
-              themessage = `Boarding completed at door ${sensorName} (${doorOpenTime / 1000} seconds.)`;
+              themessage = `Boarding completed at door ${sensorName} (${doorOpenTime / 1000} seconds).`;
               // Call your custom function for valid door event
               handleValidDoorEvent(sensorName);
             } else {
               console.log(`Invalid door event: ${sensorName}`);
-              themessage = `Door ${sensorName} closed and considered not a boarding operations as it and was only open for ${doorOpenTime / 1000} seconds.`;
+              themessage = `Door ${sensorName} closed and was not deemed a boarding operation because it was open for only ${doorOpenTime / 1000} seconds.`;
             }
             pushFirebase(themessage);
             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
