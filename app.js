@@ -162,6 +162,7 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           // Door opened
           sensorBuffer.length = 0; // Reset the buffer
           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
+          db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
           var themessage = `Door ${sensorName} opened at ` + moment().format('LTS');
           pushFirebase(themessage);
         } else {
@@ -169,6 +170,7 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           if (sensorBuffer.length === 1) {
             // Only calculate duration if an open timestamp exists
             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
+            db.ref(`doors/Door${sensorName}`).set(true); // Update the door status in Firebase as closed
             var themessage = "";
             // Check if the door event is valid
             if (doorOpenTime >= falsePositiveDoorOpening * 60 * 1000) {
@@ -188,6 +190,14 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
       }
     }, 100); // 100 ms debounce period
   });
+}
+
+function handleValidDoorEvent(sensorName) {
+  // Custom logic for valid door event
+  // Perform actions based on the valid door event
+  // This function will be called when a door event is considered valid
+  console.log(`Handling valid door event: ${sensorName}`);
+  // Add your code here
 }
 
 // Firebase reference for sidebar log
