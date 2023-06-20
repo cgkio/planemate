@@ -113,40 +113,7 @@ async function getDoorAssignment() {
   });
 }
 
-// Create a function that is used to monitor all contact sensors
-// function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
-//   var debounceTimeout = null;
-
-//   sensor.on("interrupt", function (level) {
-//     if (debounceTimeout) clearTimeout(debounceTimeout);
-
-//     debounceTimeout = setTimeout(function () {
-//       if (level !== previousState) {
-//         console.log(`Door ${sensorName} - ${level === 0 ? "Open" : "Closed"}`);
-//         previousState = level;
-
-//         if (level === 0) {
-//           // Door opened
-//           sensorBuffer.length = 0; // Reset the buffer
-//           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
-//           db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
-//           var themessage = `Door ${sensorName} opened at ` + moment().format('LTS');
-//           pushFirebase(themessage);
-//         } else {
-//           // Door closed
-//           db.ref(`doors/Door${sensorName}`).set(true); // Update the door status in Firebase as open
-//           if (sensorBuffer.length === 1) {
-//             // Only calculate duration if an open timestamp exists
-//             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
-//             var themessage = `Door ${sensorName} closed and was open for ${doorOpenTime / 1000} seconds.`;
-//             pushFirebase(themessage);
-//             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
-//           }
-//         }
-//       }
-//     }, 100); // 100 ms debounce period
-//   });
-// }
+// Function used to monitor contact sensors
 function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
   var debounceTimeout = null;
 
@@ -176,12 +143,12 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
             if (doorOpenTime >= falsePositiveDoorOpening * 60 * 1000) {
               // Valid door event, do something here
               console.log(`Valid door event: ${sensorName}`);
-              themessage = `Boarding done at door ${sensorName} (${doorOpenTime / 1000} seconds.)`;
+              themessage = `Boarding completed at door ${sensorName} (${doorOpenTime / 1000} seconds.)`;
               // Call your custom function for valid door event
               handleValidDoorEvent(sensorName);
             } else {
               console.log(`Invalid door event: ${sensorName}`);
-              themessage = `Door ${sensorName} closed and was only open for ${doorOpenTime / 1000} seconds.`;
+              themessage = `Door ${sensorName} closed and considered not a boarding operations as it and was only open for ${doorOpenTime / 1000} seconds.`;
             }
             pushFirebase(themessage);
             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
