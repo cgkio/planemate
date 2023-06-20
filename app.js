@@ -81,35 +81,49 @@ function log(message) {
 // startup function to understand which dock the device is assigned to
 async function getDoorAssignment() {
   return new Promise((resolve, reject) => {
-    macaddress.one("wlan0").then((mac) => {
-      console.log(`MAC address: ${mac}`);
-      base('Door Assignments')
-        .select({
-          filterByFormula: `AND({MAC Address} = '${mac}')`,
-          maxRecords: 1,
-        })
-        .firstPage((error, records) => {
-          if (error) {
-            console.error("Error getting door assignment:", error);
-            reject(error);
-          }
-          if (records.length > 0) {
-            dockNumber = records[0].get("Dock Number");
-            sensor1Name = records[0].get("Door One");
-            sensor2Name = records[0].get("Door Two");
-            sensor3Name = records[0].get("Door Three");
-            sensor4Name = records[0].get("Door Four");
-            log("Monitoring " + sensor1Name + " and " + sensor2Name + " and " + sensor3Name + " and " + sensor4Name + " on Dock " + dockNumber);
-            resolve();
-          } else {
-            console.error("No door assignment found for this MAC address.");
-            process.exit(1);
-          }
-        });
-    }).catch((error) => {
-      console.error("Error getting door assignment:", error);
-      reject(error);
-    });
+    macaddress
+      .one("wlan0")
+      .then((mac) => {
+        console.log(`MAC address: ${mac}`);
+        base("Door Assignments")
+          .select({
+            filterByFormula: `AND({MAC Address} = '${mac}')`,
+            maxRecords: 1,
+          })
+          .firstPage((error, records) => {
+            if (error) {
+              console.error("Error getting door assignment:", error);
+              reject(error);
+            }
+            if (records.length > 0) {
+              dockNumber = records[0].get("Dock Number");
+              sensor1Name = records[0].get("Door One");
+              sensor2Name = records[0].get("Door Two");
+              sensor3Name = records[0].get("Door Three");
+              sensor4Name = records[0].get("Door Four");
+              log(
+                "Monitoring " +
+                  sensor1Name +
+                  " and " +
+                  sensor2Name +
+                  " and " +
+                  sensor3Name +
+                  " and " +
+                  sensor4Name +
+                  " on Dock " +
+                  dockNumber
+              );
+              resolve();
+            } else {
+              console.error("No door assignment found for this MAC address.");
+              process.exit(1);
+            }
+          });
+      })
+      .catch((error) => {
+        console.error("Error getting door assignment:", error);
+        reject(error);
+      });
   });
 }
 
@@ -130,7 +144,8 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           sensorBuffer.length = 0; // Reset the buffer
           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
           db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
-          var themessage = `Door ${sensorName} opened at ` + moment().format('LTS');
+          var themessage =
+            `Door ${sensorName} opened at ` + moment().format("LTS");
           pushFirebase(themessage);
         } else {
           // Door closed
@@ -143,14 +158,15 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
             if (doorOpenTime >= falsePositiveDoorOpening * 60 * 1000) {
               // Valid door event, do something here
               console.log(`Valid door event: ${sensorName}`);
-              themessage = `Boarding completed at door ${sensorName} (${doorOpenTime / 1000} seconds).`;
               // Call your custom function for valid door event
-              handleValidDoorEvent(sensorName);
+              handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime);
             } else {
               console.log(`Invalid door event: ${sensorName}`);
-              themessage = `Door ${sensorName} closed and was not deemed a boarding operation because it was open for only ${doorOpenTime / 1000} seconds.`;
+              themessage = `Door ${sensorName} closed and was not deemed a boarding operation because it was open for only ${
+                doorOpenTime / 1000
+              } seconds.`;
+              pushFirebase(themessage);
             }
-            pushFirebase(themessage);
             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
           }
         }
@@ -159,15 +175,14 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
   });
 }
 
-function handleValidDoorEvent(sensorName) {
-  // Custom logic for valid door event
-  // Perform actions based on the valid door event
+function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
+  // Perform actions based on being a valid door event
   // This function will be called when a door event is considered valid
   console.log(`Handling valid door event: ${sensorName}`);
 
   // Check if boarding is complete
   if (sensorName === sensor1Name || sensorName === sensor2Name) {
-    // Either door of the pair is closed
+    // Either door of the pair A is closed
     if (
       (sensor1Buffer.length === 2 && sensor2Buffer.length === 1) ||
       (sensor1Buffer.length === 1 && sensor2Buffer.length === 2)
@@ -176,7 +191,7 @@ function handleValidDoorEvent(sensorName) {
       return;
     }
   } else if (sensorName === sensor3Name || sensorName === sensor4Name) {
-    // Either door of the pair is closed
+    // Either door of the pair B is closed
     if (
       (sensor3Buffer.length === 2 && sensor4Buffer.length === 1) ||
       (sensor3Buffer.length === 1 && sensor4Buffer.length === 2)
@@ -184,12 +199,14 @@ function handleValidDoorEvent(sensorName) {
       console.log("Waiting for the other door to close to complete boarding.");
       return;
     }
+  } else {
+    // Add your code here for actions when boarding is deemed complete
+    themessage = `Boarding completed at door ${sensorName} (${
+      doorOpenTime / 1000
+    } seconds).`;
+    pushFirebase(themessage);
   }
-
-  console.log("Boarding complete.");
-  // Add your code here for actions when boarding is complete
 }
-
 
 // Firebase reference for sidebar log
 const lastTenRef = db.ref("runningLog/lastTen");
