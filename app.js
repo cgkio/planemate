@@ -164,8 +164,32 @@ function handleValidDoorEvent(sensorName) {
   // Perform actions based on the valid door event
   // This function will be called when a door event is considered valid
   console.log(`Handling valid door event: ${sensorName}`);
-  // Add your code here
+
+  // Check if boarding is complete
+  if (sensorName === sensor1Name || sensorName === sensor2Name) {
+    // Either door of the pair is closed
+    if (
+      (sensor1Buffer.length === 2 && sensor2Buffer.length === 1) ||
+      (sensor1Buffer.length === 1 && sensor2Buffer.length === 2)
+    ) {
+      console.log("Waiting for the other door to close to complete boarding.");
+      return;
+    }
+  } else if (sensorName === sensor3Name || sensorName === sensor4Name) {
+    // Either door of the pair is closed
+    if (
+      (sensor3Buffer.length === 2 && sensor4Buffer.length === 1) ||
+      (sensor3Buffer.length === 1 && sensor4Buffer.length === 2)
+    ) {
+      console.log("Waiting for the other door to close to complete boarding.");
+      return;
+    }
+  }
+
+  console.log("Boarding complete.");
+  // Add your code here for actions when boarding is complete
 }
+
 
 // Firebase reference for sidebar log
 const lastTenRef = db.ref("runningLog/lastTen");
