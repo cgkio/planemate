@@ -126,19 +126,49 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           sensorBuffer.length = 0; // Reset the buffer
           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
           db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
+          var themessage = `Door ${sensorName} opened at ` + moment().format('LTS');
+          pushFirebase(themessage);
         } else {
           // Door closed
           db.ref(`doors/Door${sensorName}`).set(true); // Update the door status in Firebase as open
           if (sensorBuffer.length === 1) {
             // Only calculate duration if an open timestamp exists
             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
-            console.log(`Door ${sensorName} was open for ${doorOpenTime / 1000} seconds.`);
+            var themessage = `Door ${sensorName} closed and was open for ${doorOpenTime / 1000} seconds.`;
+            pushFirebase(themessage);
             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
           }
         }
       }
     }, 100); // 100 ms debounce period
   });
+}
+
+// Firebase reference for sidebar log
+const lastTenRef = db.ref("runningLog/lastTen");
+
+// Remove the oldest entry if there are more than 10 entries
+lastTenRef.on("value", (snapshot) => {
+  if (snapshot.numChildren() > 10) {
+    let childCount = 0;
+    const updates = {};
+    snapshot.forEach((childSnapshot) => {
+      if (++childCount <= snapshot.numChildren() - 10) {
+        updates[childSnapshot.key] = null;
+      }
+    });
+    lastTenRef.update(updates);
+  }
+});
+
+// function for pushing messages to sidebar
+function pushFirebase(message) {
+  console.log(message);
+  const logEntry = {
+    message: message,
+    timestamp: firebaseAdmin.database.ServerValue.TIMESTAMP,
+  };
+  lastTenRef.push(logEntry);
 }
 
 // primary function that runs when the program starts
