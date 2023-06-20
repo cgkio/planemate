@@ -31,8 +31,6 @@ var sensorPinNo4 = 12;
 // Global variables
 let doLogStuff = true;
 let dockNumber = null;
-
-// Global variables for configuring algorithms
 var sensor1Name = null;
 var sensor2Name = null;
 var sensor3Name = null;
@@ -41,6 +39,12 @@ var sensor1Buffer = [];
 var sensor2Buffer = [];
 var sensor3Buffer = [];
 var sensor4Buffer = [];
+
+// Global variables for configuring algorithms
+let turnaroundReset; // Number of minutes to wait before restarting PlaneMate procedures (for calculating turnaround time).
+let KPIrecalulation; // The number of door open/close cycles performed before recalculating KPIs.
+let falsePositiveDoorOpening; //The number of minutes that must elapse before the door opens is deemed a valid loading operation.
+let testStatus; //Allows for Firebase-only operations w/ no database submissions
 
 // Create new Gpio objects for the contact sensors
 var sensor1 = new Gpio(sensorPinNo1, {
@@ -110,6 +114,39 @@ async function getDoorAssignment() {
 }
 
 // Create a function that is used to monitor all contact sensors
+// function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
+//   var debounceTimeout = null;
+
+//   sensor.on("interrupt", function (level) {
+//     if (debounceTimeout) clearTimeout(debounceTimeout);
+
+//     debounceTimeout = setTimeout(function () {
+//       if (level !== previousState) {
+//         console.log(`Door ${sensorName} - ${level === 0 ? "Open" : "Closed"}`);
+//         previousState = level;
+
+//         if (level === 0) {
+//           // Door opened
+//           sensorBuffer.length = 0; // Reset the buffer
+//           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
+//           db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
+//           var themessage = `Door ${sensorName} opened at ` + moment().format('LTS');
+//           pushFirebase(themessage);
+//         } else {
+//           // Door closed
+//           db.ref(`doors/Door${sensorName}`).set(true); // Update the door status in Firebase as open
+//           if (sensorBuffer.length === 1) {
+//             // Only calculate duration if an open timestamp exists
+//             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
+//             var themessage = `Door ${sensorName} closed and was open for ${doorOpenTime / 1000} seconds.`;
+//             pushFirebase(themessage);
+//             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
+//           }
+//         }
+//       }
+//     }, 100); // 100 ms debounce period
+//   });
+// }
 function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
   var debounceTimeout = null;
 
@@ -125,16 +162,25 @@ function handleInterrupt(sensor, sensorName, previousState, sensorBuffer) {
           // Door opened
           sensorBuffer.length = 0; // Reset the buffer
           sensorBuffer.push(moment().valueOf()); // Add door open timestamp
-          db.ref(`doors/Door${sensorName}`).set(false); // Update the door status in Firebase as open
           var themessage = `Door ${sensorName} opened at ` + moment().format('LTS');
           pushFirebase(themessage);
         } else {
           // Door closed
-          db.ref(`doors/Door${sensorName}`).set(true); // Update the door status in Firebase as open
           if (sensorBuffer.length === 1) {
             // Only calculate duration if an open timestamp exists
             const doorOpenTime = moment().diff(moment(sensorBuffer[0]));
-            var themessage = `Door ${sensorName} closed and was open for ${doorOpenTime / 1000} seconds.`;
+            var themessage = "";
+            // Check if the door event is valid
+            if (doorOpenTime >= falsePositiveDoorOpening * 60 * 1000) {
+              // Valid door event, do something here
+              console.log(`Valid door event: ${sensorName}`);
+              themessage = `Boarding done at door ${sensorName} (${doorOpenTime / 1000} seconds.)`;
+              // Call your custom function for valid door event
+              handleValidDoorEvent(sensorName);
+            } else {
+              console.log(`Invalid door event: ${sensorName}`);
+              themessage = `Door ${sensorName} closed and was only open for ${doorOpenTime / 1000} seconds.`;
+            }
             pushFirebase(themessage);
             sensorBuffer.push(moment().valueOf()); // Add door close timestamp
           }
@@ -198,4 +244,26 @@ async function main() {
   setInterval(function () {}, 1000);
 }
 
-main();
+// Fetch global variables from Firebase
+db.ref("variables")
+  .once("value")
+  .then((snapshot) => {
+    const data = snapshot.val();
+    turnaroundReset = data.turnaroundReset;
+    KPIrecalulation = data.KPIrecalulation;
+    falsePositiveDoorOpening = data.falsePositiveDoorOpening;
+    testStatus = data.testStatus;
+
+    // Console log the new values
+    console.log("New values fetched from Firebase:");
+    console.log("falsePositiveDoorOpening:", falsePositiveDoorOpening);
+    console.log("KPIrecalulation:", KPIrecalulation);
+    console.log("turnaroundReset:", turnaroundReset);
+    console.log("testStatus:", testStatus);
+
+    // Call the main function
+    main();
+  })
+  .catch((error) => {
+    console.error("Error reading Firebase data: ", error);
+  });

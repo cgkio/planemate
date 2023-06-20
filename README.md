@@ -248,6 +248,13 @@ sudo apt-get install pigpio
 sudo npm install pigpio
 ```
 
+8. Setup NTP time to prevent server time / Firebase SDK issues
+```
+sudo apt install ntp
+sudo systemctl restart ntp
+sudo systemctl status ntp
+```
+
 Remaining Items:
 - Add Pi Tunnel
 - Add autoboot
