@@ -85,7 +85,7 @@ async function getDoorAssignment() {
       .one("wlan0")
       .then((mac) => {
         console.log(`MAC address: ${mac}`);
-        base("planemates_door_assignment")
+        base("planemate_door_assignment")
           .select({
             filterByFormula: `AND({MAC Address} = '${mac}')`,
             maxRecords: 1,
