@@ -206,7 +206,7 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
     } seconds).`;
     pushFirebase(themessage);
     // add record in AirTable
-    if (doorOpenDuration > falsePositiveDoorOpening) {
+    // if (doorOpenDuration > falsePositiveDoorOpening) {
       // Only process a record if the door was open for more than 10 seconds
       const fields = {
         "Door Number": sensorName,
@@ -232,7 +232,7 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
       addAirtableRecord(fields).then(() => {
         log("AirTable record added");
       });
-  }
+  // }
 }
 
 // Firebase reference for sidebar log
@@ -278,6 +278,7 @@ async function addAirtableRecord(fields) {
   } catch (error) {
     console.error("Error adding record to Airtable:", error);
   }
+}
 
 // primary function that runs when the program starts
 async function main() {
