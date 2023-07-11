@@ -11,7 +11,7 @@ const Airtable = require("airtable");
 const airtableconfig = require("./airtable.json");
 const AIRTABLE_API_KEY = airtableconfig.AIRTABLE_API_KEY;
 const AIRTABLE_BASE_ID = airtableconfig.AIRTABLE_BASE_ID;
-const AIRTABLE_TABLE_NAME = "Door Log";
+const AIRTABLE_TABLE_NAME = "planemate_contact";
 const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
 //Firebase setup
@@ -85,7 +85,7 @@ async function getDoorAssignment() {
       .one("wlan0")
       .then((mac) => {
         console.log(`MAC address: ${mac}`);
-        base("Door Assignments")
+        base("planemates_door_assignment")
           .select({
             filterByFormula: `AND({MAC Address} = '${mac}')`,
             maxRecords: 1,
@@ -205,6 +205,33 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
       doorOpenTime / 1000
     } seconds).`;
     pushFirebase(themessage);
+    // add record in AirTable
+    if (doorOpenDuration > falsePositiveDoorOpening) {
+      // Only process a record if the door was open for more than 10 seconds
+      const fields = {
+        "Door Number": ${sensorName},
+        "Door Open": openTimestamp,
+        "Door Close": closeTimestamp,
+        "Door Open Duration": doorOpenDuration,
+        // "Passengers Counted": peopleCount - 1,
+        // "Boarding Start": firstPassengerTimestamp,
+        // "Boarding Stop": lastPassengerTimestamp,
+        // boardingDuration: boardingDuration,
+        // "PlaneMate On-Time": planeMateOnTime,
+      };
+      // if (
+      //   lastTurnaroundTime !== null &&
+      //   lastTurnaroundTime < turnaroundReset * 60
+      // ) {
+      //   fields["Turnaround Time"] = lastTurnaroundTime;
+      //   db.ref(`lastTransaction/turnaroundTime`).set(lastTurnaroundTime);
+      // } else {
+      //   // fields["Turnaround Time"] = "N/A";
+      //   db.ref(`lastTransaction/turnaroundTime`).set("N/A");
+      // }
+      addAirtableRecord(fields).then(() => {
+        log("AirTable record added");
+      });
   }
 }
 
@@ -234,6 +261,23 @@ function pushFirebase(message) {
   };
   lastTenRef.push(logEntry);
 }
+
+// function to add a record to Airtable
+async function addAirtableRecord(fields) {
+  fields["Dock Number"] = dockNumber;
+  fields["Door Number"] = doorNumber;
+  try {
+    const response = await axios.post(`/${AIRTABLE_TABLE_NAME}`, {
+      records: [
+        {
+          fields: fields,
+        },
+      ],
+    });
+    log("Record added to Airtable");
+  } catch (error) {
+    console.error("Error adding record to Airtable:", error);
+  }
 
 // primary function that runs when the program starts
 async function main() {

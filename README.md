@@ -33,7 +33,7 @@ Headless Raspberry Pi running Node.js that autoboots.
 
 **To SSH:**
 ```
-ssh stratops@stratopspi.local
+ssh stratops@stratopspi3.local
 (or ssh stratops@stratopspi2/3/4/5.local)
  
 username: stratops
