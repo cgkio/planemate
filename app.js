@@ -209,7 +209,7 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
     if (doorOpenDuration > falsePositiveDoorOpening) {
       // Only process a record if the door was open for more than 10 seconds
       const fields = {
-        "Door Number": ${sensorName},
+        "Door Number": sensorName,
         "Door Open": openTimestamp,
         "Door Close": closeTimestamp,
         "Door Open Duration": doorOpenDuration,
