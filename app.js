@@ -232,7 +232,8 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
       addAirtableRecord(fields).then(() => {
         log("AirTable record added");
       });
-  // }
+    // }
+  }
 }
 
 // Firebase reference for sidebar log
