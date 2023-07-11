@@ -188,6 +188,10 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
       (sensor1Buffer.length === 1 && sensor2Buffer.length === 2)
     ) {
       console.log("Waiting for the other door to close to complete boarding.");
+      console.log(sensor1Buffer);
+      console.log(sensor2Buffer);
+      console.log(sensor3Buffer);
+      console.log(sensor4Buffer);
       return;
     }
   } else if (sensorName === sensor3Name || sensorName === sensor4Name) {
@@ -197,6 +201,10 @@ function handleValidDoorEvent(sensorName, sensorBuffer, doorOpenTime) {
       (sensor3Buffer.length === 1 && sensor4Buffer.length === 2)
     ) {
       console.log("Waiting for the other door to close to complete boarding.");
+      console.log(sensor1Buffer);
+      console.log(sensor2Buffer);
+      console.log(sensor3Buffer);
+      console.log(sensor4Buffer);
       return;
     }
   } else {
